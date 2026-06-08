@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SelectProfileRouteImport } from './routes/select-profile'
 import { Route as LoadingRouteImport } from './routes/loading'
@@ -22,6 +23,11 @@ import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
 import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 import { Route as BlogSubmitRouteImport } from './routes/blog.submit'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
@@ -104,6 +111,7 @@ export interface FileRoutesByTo {
   '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
@@ -119,6 +127,7 @@ export interface FileRoutesById {
   '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
@@ -135,6 +144,7 @@ export interface FileRouteTypes {
     | '/loading'
     | '/select-profile'
     | '/settings'
+    | '/sitemap.xml'
     | '/blog/submit'
     | '/jano/reader'
     | '/minerva/conversa'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/loading'
     | '/select-profile'
     | '/settings'
+    | '/sitemap.xml'
     | '/blog/submit'
     | '/jano/reader'
     | '/minerva/conversa'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/loading'
     | '/select-profile'
     | '/settings'
+    | '/sitemap.xml'
     | '/blog/submit'
     | '/jano/reader'
     | '/minerva/conversa'
@@ -178,6 +190,7 @@ export interface RootRouteChildren {
   LoadingRoute: typeof LoadingRoute
   SelectProfileRoute: typeof SelectProfileRoute
   SettingsRoute: typeof SettingsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSubmitRoute: typeof BlogSubmitRoute
   JanoReaderRoute: typeof JanoReaderRoute
   MinervaConversaRoute: typeof MinervaConversaRoute
@@ -188,6 +201,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -282,6 +302,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoadingRoute: LoadingRoute,
   SelectProfileRoute: SelectProfileRoute,
   SettingsRoute: SettingsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSubmitRoute: BlogSubmitRoute,
   JanoReaderRoute: JanoReaderRoute,
   MinervaConversaRoute: MinervaConversaRoute,
