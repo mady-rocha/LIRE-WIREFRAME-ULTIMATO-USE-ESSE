@@ -13,6 +13,7 @@ import { Route as SelectProfileRouteImport } from './routes/select-profile'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JanoIndexRouteImport } from './routes/jano.index'
+import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 
 const SelectProfileRoute = SelectProfileRouteImport.update({
   id: '/select-profile',
@@ -34,17 +35,24 @@ const JanoIndexRoute = JanoIndexRouteImport.update({
   path: '/jano/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JanoReaderRoute = JanoReaderRouteImport.update({
+  id: '/jano/reader',
+  path: '/jano/reader',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/select-profile': typeof SelectProfileRoute
+  '/jano/reader': typeof JanoReaderRoute
   '/jano/': typeof JanoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/select-profile': typeof SelectProfileRoute
+  '/jano/reader': typeof JanoReaderRoute
   '/jano': typeof JanoIndexRoute
 }
 export interface FileRoutesById {
@@ -52,20 +60,22 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/select-profile': typeof SelectProfileRoute
+  '/jano/reader': typeof JanoReaderRoute
   '/jano/': typeof JanoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/select-profile' | '/jano/'
+  fullPaths: '/' | '/auth' | '/select-profile' | '/jano/reader' | '/jano/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/select-profile' | '/jano'
-  id: '__root__' | '/' | '/auth' | '/select-profile' | '/jano/'
+  to: '/' | '/auth' | '/select-profile' | '/jano/reader' | '/jano'
+  id: '__root__' | '/' | '/auth' | '/select-profile' | '/jano/reader' | '/jano/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   SelectProfileRoute: typeof SelectProfileRoute
+  JanoReaderRoute: typeof JanoReaderRoute
   JanoIndexRoute: typeof JanoIndexRoute
 }
 
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JanoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jano/reader': {
+      id: '/jano/reader'
+      path: '/jano/reader'
+      fullPath: '/jano/reader'
+      preLoaderRoute: typeof JanoReaderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -106,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   SelectProfileRoute: SelectProfileRoute,
+  JanoReaderRoute: JanoReaderRoute,
   JanoIndexRoute: JanoIndexRoute,
 }
 export const routeTree = rootRouteImport
