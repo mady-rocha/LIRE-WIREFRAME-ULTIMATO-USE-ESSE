@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MinervaIndexRouteImport } from './routes/minerva.index'
 import { Route as JanoIndexRouteImport } from './routes/jano.index'
+import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
 import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 
 const SelectProfileRoute = SelectProfileRouteImport.update({
@@ -41,6 +42,11 @@ const JanoIndexRoute = JanoIndexRouteImport.update({
   path: '/jano/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MinervaConversaRoute = MinervaConversaRouteImport.update({
+  id: '/minerva/conversa',
+  path: '/minerva/conversa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JanoReaderRoute = JanoReaderRouteImport.update({
   id: '/jano/reader',
   path: '/jano/reader',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/select-profile': typeof SelectProfileRoute
   '/jano/reader': typeof JanoReaderRoute
+  '/minerva/conversa': typeof MinervaConversaRoute
   '/jano/': typeof JanoIndexRoute
   '/minerva/': typeof MinervaIndexRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/select-profile': typeof SelectProfileRoute
   '/jano/reader': typeof JanoReaderRoute
+  '/minerva/conversa': typeof MinervaConversaRoute
   '/jano': typeof JanoIndexRoute
   '/minerva': typeof MinervaIndexRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/select-profile': typeof SelectProfileRoute
   '/jano/reader': typeof JanoReaderRoute
+  '/minerva/conversa': typeof MinervaConversaRoute
   '/jano/': typeof JanoIndexRoute
   '/minerva/': typeof MinervaIndexRoute
 }
@@ -79,16 +88,25 @@ export interface FileRouteTypes {
     | '/auth'
     | '/select-profile'
     | '/jano/reader'
+    | '/minerva/conversa'
     | '/jano/'
     | '/minerva/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/select-profile' | '/jano/reader' | '/jano' | '/minerva'
+  to:
+    | '/'
+    | '/auth'
+    | '/select-profile'
+    | '/jano/reader'
+    | '/minerva/conversa'
+    | '/jano'
+    | '/minerva'
   id:
     | '__root__'
     | '/'
     | '/auth'
     | '/select-profile'
     | '/jano/reader'
+    | '/minerva/conversa'
     | '/jano/'
     | '/minerva/'
   fileRoutesById: FileRoutesById
@@ -98,6 +116,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   SelectProfileRoute: typeof SelectProfileRoute
   JanoReaderRoute: typeof JanoReaderRoute
+  MinervaConversaRoute: typeof MinervaConversaRoute
   JanoIndexRoute: typeof JanoIndexRoute
   MinervaIndexRoute: typeof MinervaIndexRoute
 }
@@ -139,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JanoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/minerva/conversa': {
+      id: '/minerva/conversa'
+      path: '/minerva/conversa'
+      fullPath: '/minerva/conversa'
+      preLoaderRoute: typeof MinervaConversaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/jano/reader': {
       id: '/jano/reader'
       path: '/jano/reader'
@@ -154,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   SelectProfileRoute: SelectProfileRoute,
   JanoReaderRoute: JanoReaderRoute,
+  MinervaConversaRoute: MinervaConversaRoute,
   JanoIndexRoute: JanoIndexRoute,
   MinervaIndexRoute: MinervaIndexRoute,
 }
