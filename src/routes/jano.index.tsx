@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { PremiumBadge } from "@/components/PremiumBadge";
 import { useApp } from "@/lib/app-context";
 
-export const Route = createFileRoute("/jano")({
+export const Route = createFileRoute("/jano/")({
   head: () => ({ meta: [{ title: "Início — Módulo Jano | Lire" }] }),
   component: JanoHome,
 });

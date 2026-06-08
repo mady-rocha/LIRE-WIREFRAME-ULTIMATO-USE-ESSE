@@ -10,18 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SelectProfileRouteImport } from './routes/select-profile'
-import { Route as JanoRouteImport } from './routes/jano'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as JanoIndexRouteImport } from './routes/jano.index'
 
 const SelectProfileRoute = SelectProfileRouteImport.update({
   id: '/select-profile',
   path: '/select-profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const JanoRoute = JanoRouteImport.update({
-  id: '/jano',
-  path: '/jano',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -34,39 +29,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JanoIndexRoute = JanoIndexRouteImport.update({
+  id: '/jano/',
+  path: '/jano/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/jano': typeof JanoRoute
   '/select-profile': typeof SelectProfileRoute
+  '/jano/': typeof JanoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/jano': typeof JanoRoute
   '/select-profile': typeof SelectProfileRoute
+  '/jano': typeof JanoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/jano': typeof JanoRoute
   '/select-profile': typeof SelectProfileRoute
+  '/jano/': typeof JanoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/jano' | '/select-profile'
+  fullPaths: '/' | '/auth' | '/select-profile' | '/jano/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/jano' | '/select-profile'
-  id: '__root__' | '/' | '/auth' | '/jano' | '/select-profile'
+  to: '/' | '/auth' | '/select-profile' | '/jano'
+  id: '__root__' | '/' | '/auth' | '/select-profile' | '/jano/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
-  JanoRoute: typeof JanoRoute
   SelectProfileRoute: typeof SelectProfileRoute
+  JanoIndexRoute: typeof JanoIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,13 +76,6 @@ declare module '@tanstack/react-router' {
       path: '/select-profile'
       fullPath: '/select-profile'
       preLoaderRoute: typeof SelectProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/jano': {
-      id: '/jano'
-      path: '/jano'
-      fullPath: '/jano'
-      preLoaderRoute: typeof JanoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -99,14 +92,21 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jano/': {
+      id: '/jano/'
+      path: '/jano'
+      fullPath: '/jano/'
+      preLoaderRoute: typeof JanoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
-  JanoRoute: JanoRoute,
   SelectProfileRoute: SelectProfileRoute,
+  JanoIndexRoute: JanoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
