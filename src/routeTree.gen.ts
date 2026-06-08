@@ -9,7 +9,9 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SelectProfileRouteImport } from './routes/select-profile'
+import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as AvatarRouteImport } from './routes/avatar'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
@@ -20,9 +22,19 @@ import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
 import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 import { Route as BlogSubmitRouteImport } from './routes/blog.submit'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SelectProfileRoute = SelectProfileRouteImport.update({
   id: '/select-profile',
   path: '/select-profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoadingRoute = LoadingRouteImport.update({
+  id: '/loading',
+  path: '/loading',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AvatarRoute = AvatarRouteImport.update({
@@ -75,7 +87,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
+  '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
+  '/settings': typeof SettingsRoute
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
@@ -87,7 +101,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
+  '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
+  '/settings': typeof SettingsRoute
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
@@ -100,7 +116,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
+  '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
+  '/settings': typeof SettingsRoute
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
@@ -114,7 +132,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/avatar'
+    | '/loading'
     | '/select-profile'
+    | '/settings'
     | '/blog/submit'
     | '/jano/reader'
     | '/minerva/conversa'
@@ -126,7 +146,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/avatar'
+    | '/loading'
     | '/select-profile'
+    | '/settings'
     | '/blog/submit'
     | '/jano/reader'
     | '/minerva/conversa'
@@ -138,7 +160,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/avatar'
+    | '/loading'
     | '/select-profile'
+    | '/settings'
     | '/blog/submit'
     | '/jano/reader'
     | '/minerva/conversa'
@@ -151,7 +175,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   AvatarRoute: typeof AvatarRoute
+  LoadingRoute: typeof LoadingRoute
   SelectProfileRoute: typeof SelectProfileRoute
+  SettingsRoute: typeof SettingsRoute
   BlogSubmitRoute: typeof BlogSubmitRoute
   JanoReaderRoute: typeof JanoReaderRoute
   MinervaConversaRoute: typeof MinervaConversaRoute
@@ -162,11 +188,25 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/select-profile': {
       id: '/select-profile'
       path: '/select-profile'
       fullPath: '/select-profile'
       preLoaderRoute: typeof SelectProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loading': {
+      id: '/loading'
+      path: '/loading'
+      fullPath: '/loading'
+      preLoaderRoute: typeof LoadingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/avatar': {
@@ -239,7 +279,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   AvatarRoute: AvatarRoute,
+  LoadingRoute: LoadingRoute,
   SelectProfileRoute: SelectProfileRoute,
+  SettingsRoute: SettingsRoute,
   BlogSubmitRoute: BlogSubmitRoute,
   JanoReaderRoute: JanoReaderRoute,
   MinervaConversaRoute: MinervaConversaRoute,
@@ -250,3 +292,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
