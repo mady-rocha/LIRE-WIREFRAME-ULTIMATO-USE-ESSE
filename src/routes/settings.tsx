@@ -9,7 +9,7 @@ import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Configurações — Lire" }] }),
-  component: SettingsScreen;
+  component: SettingsScreen,
 });
 
 function Section({ icon: Icon, title, children }: { icon: typeof User; title: string; children: ReactNode }) {
