@@ -9,43 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SelectProfileRouteImport } from './routes/select-profile'
-import { Route as LoadingRouteImport } from './routes/loading'
-import { Route as AvatarRouteImport } from './routes/avatar'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as MinervaIndexRouteImport } from './routes/minerva.index'
-import { Route as JanoIndexRouteImport } from './routes/jano.index'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AvatarRouteImport } from './routes/avatar'
+import { Route as LoadingRouteImport } from './routes/loading'
+import { Route as SelectProfileRouteImport } from './routes/select-profile'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
-import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 import { Route as BlogSubmitRouteImport } from './routes/blog.submit'
+import { Route as JanoIndexRouteImport } from './routes/jano.index'
+import { Route as JanoReaderRouteImport } from './routes/jano.reader'
+import { Route as MinervaIndexRouteImport } from './routes/minerva.index'
+import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
 
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SelectProfileRoute = SelectProfileRouteImport.update({
-  id: '/select-profile',
-  path: '/select-profile',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoadingRoute = LoadingRouteImport.update({
-  id: '/loading',
-  path: '/loading',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AvatarRoute = AvatarRouteImport.update({
-  id: '/avatar',
-  path: '/avatar',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -53,19 +33,29 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AvatarRoute = AvatarRouteImport.update({
+  id: '/avatar',
+  path: '/avatar',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MinervaIndexRoute = MinervaIndexRouteImport.update({
-  id: '/minerva/',
-  path: '/minerva/',
+const LoadingRoute = LoadingRouteImport.update({
+  id: '/loading',
+  path: '/loading',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JanoIndexRoute = JanoIndexRouteImport.update({
-  id: '/jano/',
-  path: '/jano/',
+const SelectProfileRoute = SelectProfileRouteImport.update({
+  id: '/select-profile',
+  path: '/select-profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -73,9 +63,14 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MinervaConversaRoute = MinervaConversaRouteImport.update({
-  id: '/minerva/conversa',
-  path: '/minerva/conversa',
+const BlogSubmitRoute = BlogSubmitRouteImport.update({
+  id: '/blog/submit',
+  path: '/blog/submit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JanoIndexRoute = JanoIndexRouteImport.update({
+  id: '/jano/',
+  path: '/jano/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JanoReaderRoute = JanoReaderRouteImport.update({
@@ -83,9 +78,14 @@ const JanoReaderRoute = JanoReaderRouteImport.update({
   path: '/jano/reader',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSubmitRoute = BlogSubmitRouteImport.update({
-  id: '/blog/submit',
-  path: '/blog/submit',
+const MinervaIndexRoute = MinervaIndexRouteImport.update({
+  id: '/minerva/',
+  path: '/minerva/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinervaConversaRoute = MinervaConversaRouteImport.update({
+  id: '/minerva/conversa',
+  path: '/minerva/conversa',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -201,39 +201,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/select-profile': {
-      id: '/select-profile'
-      path: '/select-profile'
-      fullPath: '/select-profile'
-      preLoaderRoute: typeof SelectProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/loading': {
-      id: '/loading'
-      path: '/loading'
-      fullPath: '/loading'
-      preLoaderRoute: typeof LoadingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/avatar': {
-      id: '/avatar'
-      path: '/avatar'
-      fullPath: '/avatar'
-      preLoaderRoute: typeof AvatarRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -243,25 +215,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/avatar': {
+      id: '/avatar'
+      path: '/avatar'
+      fullPath: '/avatar'
+      preLoaderRoute: typeof AvatarRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/minerva/': {
-      id: '/minerva/'
-      path: '/minerva'
-      fullPath: '/minerva/'
-      preLoaderRoute: typeof MinervaIndexRouteImport
+    '/loading': {
+      id: '/loading'
+      path: '/loading'
+      fullPath: '/loading'
+      preLoaderRoute: typeof LoadingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/jano/': {
-      id: '/jano/'
-      path: '/jano'
-      fullPath: '/jano/'
-      preLoaderRoute: typeof JanoIndexRouteImport
+    '/select-profile': {
+      id: '/select-profile'
+      path: '/select-profile'
+      fullPath: '/select-profile'
+      preLoaderRoute: typeof SelectProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -271,11 +257,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/minerva/conversa': {
-      id: '/minerva/conversa'
-      path: '/minerva/conversa'
-      fullPath: '/minerva/conversa'
-      preLoaderRoute: typeof MinervaConversaRouteImport
+    '/blog/submit': {
+      id: '/blog/submit'
+      path: '/blog/submit'
+      fullPath: '/blog/submit'
+      preLoaderRoute: typeof BlogSubmitRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jano/': {
+      id: '/jano/'
+      path: '/jano'
+      fullPath: '/jano/'
+      preLoaderRoute: typeof JanoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jano/reader': {
@@ -285,11 +278,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JanoReaderRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/submit': {
-      id: '/blog/submit'
-      path: '/blog/submit'
-      fullPath: '/blog/submit'
-      preLoaderRoute: typeof BlogSubmitRouteImport
+    '/minerva/': {
+      id: '/minerva/'
+      path: '/minerva'
+      fullPath: '/minerva/'
+      preLoaderRoute: typeof MinervaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minerva/conversa': {
+      id: '/minerva/conversa'
+      path: '/minerva/conversa'
+      fullPath: '/minerva/conversa'
+      preLoaderRoute: typeof MinervaConversaRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -313,3 +313,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
