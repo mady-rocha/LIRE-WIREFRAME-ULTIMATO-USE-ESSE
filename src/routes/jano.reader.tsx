@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Settings2,
   Play,
@@ -9,20 +9,21 @@ import {
   Type,
   Hand,
   Gauge,
+  Bold,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { PremiumBadge } from "@/components/PremiumBadge";
 import { useApp } from "@/lib/app-context";
+import { getDocument, updateDocumentProgress } from "@/lib/documents";
 
 export const Route = createFileRoute("/jano/reader")({
   head: () => ({ meta: [{ title: "Leitor — Módulo Jano | Lire" }] }),
   component: Reader,
 });
 
-const paragraphs = [
+const defaultParagraphs = [
   "A leitura é uma das habilidades mais complexas que o cérebro humano realiza, integrando visão, linguagem e memória em frações de segundo.",
   "Para pessoas com dislexia, pequenas mudanças na tipografia — espaçamento maior, fontes específicas e contraste adequado — podem reduzir significativamente o esforço cognitivo.",
   "O modo de foco isola o parágrafo atual, atenuando o restante do texto e ajudando a manter a atenção durante a leitura.",
@@ -30,18 +31,145 @@ const paragraphs = [
 ];
 
 function Reader() {
-  const { isPremium, showUpgrade } = useApp();
+  const { showUpgrade } = useApp();
   const [panelOpen, setPanelOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [playing, setPlaying] = useState(false);
+  const [activeTtsRange, setActiveTtsRange] = useState<{ start: number; end: number } | null>(null);
   const [activePara, setActivePara] = useState(1);
+  const [activeSentence, setActiveSentence] = useState<string | null>(null);
   const [fontSize, setFontSize] = useState([20]);
   const [lineHeight, setLineHeight] = useState([180]);
   const [dyslexic, setDyslexic] = useState(false);
+  const [bold, setBold] = useState(false);
+  const [ttsSpeed, setTtsSpeed] = useState([100]);
   const [contrast, setContrast] = useState<"claro" | "escuro" | "alto">("claro");
+  const [documentName, setDocumentName] = useState("Neurociência da leitura.pdf");
+  const [paragraphs, setParagraphs] = useState(defaultParagraphs);
+  const [documentId, setDocumentId] = useState<string | null>(null);
+  useEffect(() => {
+    const stored = sessionStorage.getItem("lire.pending-document");
+    if (!stored) return;
 
-  const tts = (action: () => void) => () =>
-    isPremium ? action() : showUpgrade("Narração por voz (TTS)");
+    try {
+      const pending = JSON.parse(stored) as { id?: string; name?: string; content?: string };
+      if (pending.id) {
+        setDocumentId(pending.id);
+        void getDocument(pending.id).then((document) => {
+          if (!document) return;
+          setDocumentName(document.name);
+          setParagraphs(document.content.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()));
+        });
+      } else if (pending.name && pending.content) {
+        setDocumentName(pending.name);
+        setParagraphs(pending.content.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()));
+      }
+    } catch {
+      sessionStorage.removeItem("lire.pending-document");
+    }
+
+  }, []);
+
+  useEffect(() => {
+    if (!documentId) return;
+
+    let lastProgress = -1;
+    const updateProgress = () => {
+      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollableHeight <= 0
+        ? 100
+        : Math.min(100, Math.max(0, Math.round((window.scrollY / scrollableHeight) * 100)));
+      if (progress === lastProgress) return;
+      lastProgress = progress;
+      void updateDocumentProgress(documentId, progress).catch(() => undefined);
+    };
+
+    updateProgress();
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("resize", updateProgress);
+    return () => {
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("resize", updateProgress);
+    };
+  }, [documentId, paragraphs.length]);
+
+  const sentences = paragraphs.map((paragraph) => paragraph.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [paragraph]);
+  const ttsSegments: Array<{ id: string; start: number; end: number }> = [];
+  let ttsOffset = 0;
+  sentences.forEach((paragraphSentences, paragraphIndex) => {
+    paragraphSentences.forEach((sentence, sentenceIndex) => {
+      ttsSegments.push({
+        id: `${paragraphIndex}-${sentenceIndex}`,
+        start: ttsOffset,
+        end: ttsOffset + sentence.length,
+      });
+      ttsOffset += sentence.length;
+    });
+    ttsOffset += 2;
+  });
+
+  const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const speakText = (rate: number) => {
+    const utterance = new SpeechSynthesisUtterance(paragraphs.join("\n\n"));
+    utterance.lang = "pt-BR";
+    utterance.rate = rate / 100;
+    utterance.onstart = () => setPlaying(true);
+    utterance.onboundary = (event) => {
+      const start = event.charIndex;
+      const end = start + (event.charLength || 1);
+      setActiveTtsRange({ start, end });
+    };
+    utterance.onend = () => {
+      setPlaying(false);
+      setActiveTtsRange(null);
+    };
+    utterance.onerror = () => {
+      setPlaying(false);
+      setActiveTtsRange(null);
+    };
+    speechRef.current = utterance;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleTts = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      showUpgrade("A narração por voz não está disponível neste navegador");
+      return;
+    }
+
+    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+      window.speechSynthesis.pause();
+      setPlaying(false);
+      setActiveTtsRange(null);
+      return;
+    }
+
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+      setPlaying(true);
+      return;
+    }
+
+    speakText(ttsSpeed[0]);
+  };
+
+  const changeTtsSpeed = (value: number[]) => {
+    setTtsSpeed(value);
+    if (typeof window !== "undefined" && "speechSynthesis" in window &&
+      (window.speechSynthesis.speaking || window.speechSynthesis.paused)) {
+      setActiveTtsRange(null);
+      speakText(value[0]);
+    }
+  };
+
+  useEffect(() => () => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+      setActiveTtsRange(null);
+    }
+  }, []);
 
   const surface =
     contrast === "escuro"
@@ -52,7 +180,7 @@ function Reader() {
 
   return (
     <AppShell
-      title="Neurociência da leitura.pdf"
+      title={documentName}
       headerExtra={
         <>
           <Button
@@ -62,9 +190,8 @@ function Reader() {
           >
             <Focus className="h-4 w-4" /> Modo Foco
           </Button>
-          <Button variant="outline" size="sm" onClick={tts(() => setPlaying((v) => !v))}>
+          <Button variant="outline" size="sm" onClick={toggleTts}>
             {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            {!isPremium && <PremiumBadge className="ml-1" />}
             <span className="ml-1">TTS</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setPanelOpen(true)}>
@@ -76,15 +203,15 @@ function Reader() {
       <div className="relative">
         {/* Reading area */}
         <article
-          className={`mx-auto my-8 max-w-2xl rounded-2xl border p-8 transition-colors ${surface}`}
-          style={{ fontFamily: dyslexic ? "Comic Sans MS, 'OpenDyslexic', sans-serif" : undefined }}
+          className={`mx-auto my-8 max-w-2xl rounded-2xl border p-8 transition-colors ${surface} ${dyslexic ? "font-dyslexic" : ""} ${bold ? "font-bold" : ""}`}
         >
-          {paragraphs.map((p, i) => {
+          {sentences.map((paragraphSentences, i) => {
             const dim = focusMode && i + 1 !== activePara;
             return (
               <p
                 key={i}
-                onClick={() => setActivePara(i + 1)}
+                onMouseEnter={() => setActivePara(i + 1)}
+                onMouseLeave={() => setActiveSentence(null)}
                 className="mb-6 cursor-pointer transition-opacity"
                 style={{
                   fontSize: `${fontSize[0]}px`,
@@ -92,25 +219,42 @@ function Reader() {
                   opacity: dim ? 0.25 : 1,
                 }}
               >
-                {i + 1 === activePara && playing && isPremium ? (
-                  <>
-                    <mark className="rounded bg-primary/40 px-0.5">A leitura</mark>
-                    {p.slice(10)}
-                  </>
-                ) : (
-                  p
-                )}
+                {paragraphSentences.map((sentence, sentenceIndex) => {
+                  const sentenceId = `${i}-${sentenceIndex}`;
+                  const isActive = focusMode && activeSentence === sentenceId;
+                  const sentenceSegment = ttsSegments.find((segment) => segment.id === sentenceId);
+                  const isTtsActive = Boolean(
+                    activeTtsRange &&
+                      sentenceSegment &&
+                      activeTtsRange.end > sentenceSegment.start &&
+                      activeTtsRange.start < sentenceSegment.end,
+                  );
+                  return (
+                    <span
+                      key={sentenceId}
+                      onMouseEnter={() => setActiveSentence(sentenceId)}
+                      className={`rounded px-0.5 transition-colors ${
+                        isActive ? "bg-primary/40" : ""
+                      } ${isTtsActive ? "bg-primary/40" : ""} ${
+                        focusMode && activeSentence && !isActive ? "opacity-25" : ""
+                      }`}
+                    >
+                      {sentence}{" "}
+                    </span>
+                  );
+                })}
               </p>
             );
           })}
         </article>
+        
 
         {/* Right customization panel with blur overlay */}
         {panelOpen && (
           <button
             aria-label="Fechar painel"
             onClick={() => setPanelOpen(false)}
-            className="fixed inset-0 z-40 bg-brand-dark/25 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-brand-dark/25"
           />
         )}
         <aside
@@ -134,6 +278,13 @@ function Reader() {
                 className={`mt-2 w-full rounded-lg border px-3 py-2 text-left text-sm ${dyslexic ? "border-primary bg-primary/10" : ""}`}
               >
                 Fonte OpenDyslexic {dyslexic ? "(ativa)" : ""}
+              </button>
+              <button
+                onClick={() => setBold((v) => !v)}
+                className={`mt-2 flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm ${bold ? "border-primary bg-primary/10" : ""}`}
+              >
+                <Bold className="h-4 w-4" />
+                Texto em negrito {bold ? "(ativo)" : ""}
               </button>
             </div>
 
@@ -164,15 +315,13 @@ function Reader() {
 
             <div>
               <Label className="flex items-center gap-2"><Gauge className="h-4 w-4" /> Velocidade do TTS</Label>
-              {!isPremium && <PremiumBadge className="ml-1 mt-1" />}
               <Slider
                 className="mt-3"
                 min={50}
                 max={200}
                 step={10}
-                defaultValue={[100]}
-                disabled={!isPremium}
-                onValueChange={() => !isPremium && showUpgrade("Velocidade da narração (TTS)")}
+                value={ttsSpeed}
+                onValueChange={changeTtsSpeed}
               />
             </div>
 

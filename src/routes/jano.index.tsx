@@ -1,9 +1,11 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { FileText, FileType, ScanText, Lightbulb, ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { PremiumBadge } from "@/components/PremiumBadge";
 import { useApp } from "@/lib/app-context";
+import { listDocuments, type SavedDocument } from "@/lib/documents";
 
 export const Route = createFileRoute("/jano/")({
   head: () => ({ meta: [{ title: "Início — Módulo Jano | Lire" }] }),
@@ -19,6 +21,13 @@ const recents = [
 function JanoHome() {
   const { isPremium, showUpgrade } = useApp();
   const navigate = useNavigate();
+  const [savedDocuments, setSavedDocuments] = useState<SavedDocument[]>([]);
+
+  useEffect(() => {
+    void listDocuments().then(setSavedDocuments).catch(() => setSavedDocuments([]));
+  }, []);
+
+  const recentDocuments = savedDocuments.length > 0 ? savedDocuments : recents;
 
   return (
     <AppShell title="Início">
@@ -28,8 +37,8 @@ function JanoHome() {
 
         {/* Quick actions */}
         <section className="mt-8 grid gap-4 sm:grid-cols-3">
-          <ActionCard icon={FileText} label="Importar PDF" onClick={() => navigate({ to: "/jano/reader" })} />
-          <ActionCard icon={FileType} label="Importar TXT" onClick={() => navigate({ to: "/jano/reader" })} />
+          <ActionCard icon={FileText} label="Importar PDF" onClick={() => navigate({ to: "/jano/import", search: { type: "pdf" } })} />
+          <ActionCard icon={FileType} label="Importar TXT" onClick={() => navigate({ to: "/jano/import", search: { type: "txt" } })} />
           <ActionCard
             icon={ScanText}
             label="Capturar imagem (OCR)"
@@ -43,33 +52,43 @@ function JanoHome() {
         <section className="mt-10">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-xl font-bold">Continue onde parou</h3>
-            <Button variant="link" className="text-accent">Ver todos</Button>
+            <Button asChild variant="link" className="text-accent">
+              <Link to="/jano/articles">Ver todos</Link>
+            </Button>
           </div>
           <div className="mt-4 space-y-3">
-            {recents.map((r) => {
-              const pct = Math.round((r.page / r.total) * 100);
+            {recentDocuments.map((document) => {
+              const isSaved = "id" in document;
+              const name = document.name;
+              const progress = isSaved ? (document.progress ?? 0) : Math.round((document.page / document.total) * 100);
               return (
-                <Link
-                  key={r.name}
-                  to="/jano/reader"
-                  className="flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors hover:border-primary/50"
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => {
+                    if (isSaved) {
+                      sessionStorage.setItem("lire.pending-document", JSON.stringify({ id: document.id }));
+                    }
+                    navigate({ to: "/jano/reader" });
+                  }}
+                  className="flex min-h-[76px] w-full items-center gap-4 rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/50"
                 >
                   <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
                     <FileText className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-medium">{r.name}</p>
+                    <p className="truncate font-medium">{name}</p>
                     <div className="mt-2 flex items-center gap-3">
                       <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
-                        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                        <div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
                       </div>
                       <span className="text-xs text-muted-foreground">
-                        página {r.page} de {r.total}
+                        {isSaved ? `${progress}% lido` : `página ${document.page} de ${document.total}`}
                       </span>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />
-                </Link>
+                </button>
               );
             })}
           </div>

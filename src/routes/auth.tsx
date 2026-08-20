@@ -64,14 +64,6 @@ function Auth() {
             <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
           </div>
 
-          {!isSignup && (
-            <div className="text-right">
-              <a href="#" className="text-sm font-medium text-accent hover:underline">
-                Esqueci minha senha
-              </a>
-            </div>
-          )}
-
           <Button type="submit" className="h-11 w-full text-base">
             {isSignup ? "Criar conta" : "Entrar"}
           </Button>

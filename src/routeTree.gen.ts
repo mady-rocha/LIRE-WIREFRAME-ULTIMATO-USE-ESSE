@@ -19,9 +19,12 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSubmitRouteImport } from './routes/blog.submit'
 import { Route as JanoIndexRouteImport } from './routes/jano.index'
+import { Route as JanoArticlesRouteImport } from './routes/jano.articles'
+import { Route as JanoImportRouteImport } from './routes/jano.import'
 import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 import { Route as MinervaIndexRouteImport } from './routes/minerva.index'
 import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
+import { Route as BlogArticleSlugRouteImport } from './routes/blog.article.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -73,6 +76,16 @@ const JanoIndexRoute = JanoIndexRouteImport.update({
   path: '/jano/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JanoArticlesRoute = JanoArticlesRouteImport.update({
+  id: '/jano/articles',
+  path: '/jano/articles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JanoImportRoute = JanoImportRouteImport.update({
+  id: '/jano/import',
+  path: '/jano/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JanoReaderRoute = JanoReaderRouteImport.update({
   id: '/jano/reader',
   path: '/jano/reader',
@@ -88,6 +101,11 @@ const MinervaConversaRoute = MinervaConversaRouteImport.update({
   path: '/minerva/conversa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogArticleSlugRoute = BlogArticleSlugRouteImport.update({
+  id: '/blog/article/$slug',
+  path: '/blog/article/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,11 +116,14 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
+  '/jano/articles': typeof JanoArticlesRoute
+  '/jano/import': typeof JanoImportRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
   '/blog/': typeof BlogIndexRoute
   '/jano/': typeof JanoIndexRoute
   '/minerva/': typeof MinervaIndexRoute
+  '/blog/article/$slug': typeof BlogArticleSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -113,11 +134,14 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
+  '/jano/articles': typeof JanoArticlesRoute
+  '/jano/import': typeof JanoImportRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
   '/blog': typeof BlogIndexRoute
   '/jano': typeof JanoIndexRoute
   '/minerva': typeof MinervaIndexRoute
+  '/blog/article/$slug': typeof BlogArticleSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -129,11 +153,14 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
+  '/jano/articles': typeof JanoArticlesRoute
+  '/jano/import': typeof JanoImportRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
   '/blog/': typeof BlogIndexRoute
   '/jano/': typeof JanoIndexRoute
   '/minerva/': typeof MinervaIndexRoute
+  '/blog/article/$slug': typeof BlogArticleSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -146,11 +173,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/blog/submit'
+    | '/jano/articles'
+    | '/jano/import'
     | '/jano/reader'
     | '/minerva/conversa'
     | '/blog/'
     | '/jano/'
     | '/minerva/'
+    | '/blog/article/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -161,11 +191,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/blog/submit'
+    | '/jano/articles'
+    | '/jano/import'
     | '/jano/reader'
     | '/minerva/conversa'
     | '/blog'
     | '/jano'
     | '/minerva'
+    | '/blog/article/$slug'
   id:
     | '__root__'
     | '/'
@@ -176,11 +209,14 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/blog/submit'
+    | '/jano/articles'
+    | '/jano/import'
     | '/jano/reader'
     | '/minerva/conversa'
     | '/blog/'
     | '/jano/'
     | '/minerva/'
+    | '/blog/article/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -192,11 +228,14 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSubmitRoute: typeof BlogSubmitRoute
+  JanoArticlesRoute: typeof JanoArticlesRoute
+  JanoImportRoute: typeof JanoImportRoute
   JanoReaderRoute: typeof JanoReaderRoute
   MinervaConversaRoute: typeof MinervaConversaRoute
   BlogIndexRoute: typeof BlogIndexRoute
   JanoIndexRoute: typeof JanoIndexRoute
   MinervaIndexRoute: typeof MinervaIndexRoute
+  BlogArticleSlugRoute: typeof BlogArticleSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -271,6 +310,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JanoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jano/articles': {
+      id: '/jano/articles'
+      path: '/jano/articles'
+      fullPath: '/jano/articles'
+      preLoaderRoute: typeof JanoArticlesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/jano/import': {
+      id: '/jano/import'
+      path: '/jano/import'
+      fullPath: '/jano/import'
+      preLoaderRoute: typeof JanoImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/jano/reader': {
       id: '/jano/reader'
       path: '/jano/reader'
@@ -292,6 +345,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MinervaConversaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/article/$slug': {
+      id: '/blog/article/$slug'
+      path: '/blog/article/$slug'
+      fullPath: '/blog/article/$slug'
+      preLoaderRoute: typeof BlogArticleSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -304,11 +364,14 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSubmitRoute: BlogSubmitRoute,
+  JanoArticlesRoute: JanoArticlesRoute,
+  JanoImportRoute: JanoImportRoute,
   JanoReaderRoute: JanoReaderRoute,
   MinervaConversaRoute: MinervaConversaRoute,
   BlogIndexRoute: BlogIndexRoute,
   JanoIndexRoute: JanoIndexRoute,
   MinervaIndexRoute: MinervaIndexRoute,
+  BlogArticleSlugRoute: BlogArticleSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
