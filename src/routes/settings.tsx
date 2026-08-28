@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { PremiumBadge } from "@/components/PremiumBadge";
-import { useApp } from "@/lib/app-context";
+import { useApp, type AppFont } from "@/lib/app-context";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: "Configurações — Lire" }] }),
@@ -33,7 +33,7 @@ function Row({ label, action }: { label: string; action: ReactNode }) {
 }
 
 function SettingsScreen() {
-  const { module, isPremium, requestModuleSwitch } = useApp();
+  const { module, isPremium, requestModuleSwitch, darkMode, setDarkMode, nightLight, setNightLight, appFont, setAppFont } = useApp();
 
   return (
     <AppShell title="Configurações">
@@ -68,9 +68,25 @@ function SettingsScreen() {
         </Section>
 
         <Section icon={Type} title="Preferências de leitura">
-          <Row label="Fonte padrão" action={<span className="text-muted-foreground">DM Sans</span>} />
+          <Row
+            label="Fonte padrão"
+            action={
+              <select
+                value={appFont}
+                onChange={(event) => setAppFont(event.target.value as AppFont)}
+                className="rounded-md border bg-background px-2 py-1.5 text-sm"
+                aria-label="Fonte padrão"
+              >
+                <option value="DM Sans">DM Sans</option>
+                <option value="OpenDyslexic">OpenDyslexic</option>
+                <option value="OpenDyslexicAlta">OpenDyslexic Alta</option>
+                <option value="OpenDyslexicMono">OpenDyslexic Mono</option>
+              </select>
+            }
+          />
           <Row label="Tamanho padrão" action={<span className="text-muted-foreground">20px</span>} />
-          <Row label="Modo escuro" action={<Switch aria-label="Modo escuro" />} />
+          <Row label="Luz noturna" action={<Switch checked={nightLight} onCheckedChange={setNightLight} aria-label="Luz noturna" />} />
+          <Row label="Modo escuro" action={<Switch checked={darkMode} onCheckedChange={setDarkMode} aria-label="Modo escuro" />} />
         </Section>
 
         <Section icon={ShieldCheck} title="Privacidade">

@@ -22,16 +22,16 @@ function Conversa() {
 
   return (
     <AppShell title="Conversa">
-      <div className="mx-auto grid max-w-6xl gap-5 px-6 py-8 lg:grid-cols-2">
+      <div className="mx-auto grid max-w-5xl gap-4 px-6 py-8 lg:grid-cols-2">
         {/* Left — deaf input (camera) */}
-        <section className="rounded-2xl border bg-card p-5">
+        <section className="rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-bold">Você (câmera)</h2>
             <PremiumBadge />
           </div>
 
           <div className="relative mt-4 flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-brand-dark text-brand-cream/70">
-            <Camera className="h-10 w-10" />
+            <Camera className="h-8 w-8" />
             {/* hand landmark overlay mock */}
             <svg className="absolute inset-0 h-full w-full opacity-70" viewBox="0 0 320 180" aria-hidden="true">
               {[[120, 90], [140, 70], [160, 60], [180, 70], [150, 110]].map(([x, y], i) => (
@@ -66,13 +66,13 @@ function Conversa() {
         </section>
 
         {/* Right — hearing input (text → avatar) */}
-        <section className="rounded-2xl border bg-card p-5">
+        <section className="rounded-xl border bg-card p-4">
           <h2 className="font-display text-lg font-bold">Ouvinte (texto)</h2>
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             placeholder="Digite uma mensagem para o avatar interpretar em Libras…"
-            className="mt-4 min-h-24"
+            className="mt-4 min-h-20"
           />
           <Button className="mt-3 w-full">
             <Send className="h-4 w-4" /> Enviar para Avatar
@@ -80,7 +80,7 @@ function Conversa() {
 
           <div className="mt-5 flex aspect-square items-center justify-center rounded-xl bg-gradient-to-b from-secondary/15 to-brand-dark/10">
             <div className="flex flex-col items-center text-muted-foreground">
-              <Hand className="h-16 w-16 text-secondary" />
+              <Hand className="h-12 w-12 text-secondary" />
               <p className="mt-3 text-sm">Avatar 3D — em repouso</p>
             </div>
           </div>

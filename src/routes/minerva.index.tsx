@@ -26,7 +26,7 @@ function MinervaHome() {
         <h2 className="font-display text-3xl font-bold">Olá, Ana</h2>
 
         {/* Quick actions — larger touch targets */}
-        <section className="mt-8 grid gap-5 sm:grid-cols-3">
+        <section className="mt-8 grid gap-4 sm:grid-cols-3">
           <BigAction
             icon={Camera}
             label="Iniciar Conversa (Câmera)"
@@ -48,16 +48,16 @@ function MinervaHome() {
               <Link
                 key={h.text}
                 to="/avatar"
-                className="flex items-center gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-primary/50"
+                className="flex min-h-[76px] w-full items-center gap-4 rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/50"
               >
-                <span className="flex h-14 w-14 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
-                  <Hand className="h-7 w-7" />
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                  <Hand className="h-5 w-5" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-lg font-semibold">{h.text}</p>
+                  <p className="truncate font-medium">{h.text}</p>
                   <p className="text-sm text-muted-foreground">{h.kind}</p>
                 </div>
-                <ChevronRight className="h-6 w-6 text-muted-foreground" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               </Link>
             ))}
           </div>
@@ -94,13 +94,13 @@ function BigAction({
   return (
     <button
       onClick={onClick}
-      className="relative flex min-h-[140px] flex-col items-start justify-between gap-4 rounded-2xl border-2 bg-card p-6 text-left transition-colors hover:border-primary/60"
+      className="relative flex min-h-[112px] flex-col items-start justify-between gap-3 rounded-xl border bg-card p-5 text-left transition-colors hover:border-primary/60"
     >
       {premium && <PremiumBadge className="absolute right-3 top-3" />}
-      <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/15 text-accent">
-        <Icon className="h-9 w-9" />
+      <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/15 text-accent">
+        <Icon className="h-5 w-5" />
       </span>
-      <span className="text-lg font-bold">{label}</span>
+      <span className="font-semibold">{label}</span>
     </button>
   );
 }

@@ -44,7 +44,7 @@ function JanoHome() {
             label="Capturar imagem (OCR)"
             premium
             locked={!isPremium}
-            onClick={() => (isPremium ? navigate({ to: "/jano/reader" }) : showUpgrade("OCR de imagens"))}
+            onClick={() => navigate({ to: "/jano/ocr" })}
           />
         </section>
 

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AvatarRouteImport } from './routes/avatar'
+import { Route as CreditsRouteImport } from './routes/credits'
 import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as SelectProfileRouteImport } from './routes/select-profile'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -21,6 +22,7 @@ import { Route as BlogSubmitRouteImport } from './routes/blog.submit'
 import { Route as JanoIndexRouteImport } from './routes/jano.index'
 import { Route as JanoArticlesRouteImport } from './routes/jano.articles'
 import { Route as JanoImportRouteImport } from './routes/jano.import'
+import { Route as JanoOcrRouteImport } from './routes/jano.ocr'
 import { Route as JanoReaderRouteImport } from './routes/jano.reader'
 import { Route as MinervaIndexRouteImport } from './routes/minerva.index'
 import { Route as MinervaConversaRouteImport } from './routes/minerva.conversa'
@@ -39,6 +41,11 @@ const AuthRoute = AuthRouteImport.update({
 const AvatarRoute = AvatarRouteImport.update({
   id: '/avatar',
   path: '/avatar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CreditsRoute = CreditsRouteImport.update({
+  id: '/credits',
+  path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoadingRoute = LoadingRouteImport.update({
@@ -86,6 +93,11 @@ const JanoImportRoute = JanoImportRouteImport.update({
   path: '/jano/import',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JanoOcrRoute = JanoOcrRouteImport.update({
+  id: '/jano/ocr',
+  path: '/jano/ocr',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JanoReaderRoute = JanoReaderRouteImport.update({
   id: '/jano/reader',
   path: '/jano/reader',
@@ -111,6 +123,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
+  '/credits': typeof CreditsRoute
   '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
@@ -118,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/articles': typeof JanoArticlesRoute
   '/jano/import': typeof JanoImportRoute
+  '/jano/ocr': typeof JanoOcrRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
   '/blog/': typeof BlogIndexRoute
@@ -129,6 +143,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
+  '/credits': typeof CreditsRoute
   '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
@@ -136,6 +151,7 @@ export interface FileRoutesByTo {
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/articles': typeof JanoArticlesRoute
   '/jano/import': typeof JanoImportRoute
+  '/jano/ocr': typeof JanoOcrRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
   '/blog': typeof BlogIndexRoute
@@ -148,6 +164,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
+  '/credits': typeof CreditsRoute
   '/loading': typeof LoadingRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
@@ -155,6 +172,7 @@ export interface FileRoutesById {
   '/blog/submit': typeof BlogSubmitRoute
   '/jano/articles': typeof JanoArticlesRoute
   '/jano/import': typeof JanoImportRoute
+  '/jano/ocr': typeof JanoOcrRoute
   '/jano/reader': typeof JanoReaderRoute
   '/minerva/conversa': typeof MinervaConversaRoute
   '/blog/': typeof BlogIndexRoute
@@ -168,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/avatar'
+    | '/credits'
     | '/loading'
     | '/select-profile'
     | '/settings'
@@ -175,6 +194,7 @@ export interface FileRouteTypes {
     | '/blog/submit'
     | '/jano/articles'
     | '/jano/import'
+    | '/jano/ocr'
     | '/jano/reader'
     | '/minerva/conversa'
     | '/blog/'
@@ -186,6 +206,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/avatar'
+    | '/credits'
     | '/loading'
     | '/select-profile'
     | '/settings'
@@ -193,6 +214,7 @@ export interface FileRouteTypes {
     | '/blog/submit'
     | '/jano/articles'
     | '/jano/import'
+    | '/jano/ocr'
     | '/jano/reader'
     | '/minerva/conversa'
     | '/blog'
@@ -204,6 +226,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/avatar'
+    | '/credits'
     | '/loading'
     | '/select-profile'
     | '/settings'
@@ -211,6 +234,7 @@ export interface FileRouteTypes {
     | '/blog/submit'
     | '/jano/articles'
     | '/jano/import'
+    | '/jano/ocr'
     | '/jano/reader'
     | '/minerva/conversa'
     | '/blog/'
@@ -223,6 +247,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
   AvatarRoute: typeof AvatarRoute
+  CreditsRoute: typeof CreditsRoute
   LoadingRoute: typeof LoadingRoute
   SelectProfileRoute: typeof SelectProfileRoute
   SettingsRoute: typeof SettingsRoute
@@ -230,6 +255,7 @@ export interface RootRouteChildren {
   BlogSubmitRoute: typeof BlogSubmitRoute
   JanoArticlesRoute: typeof JanoArticlesRoute
   JanoImportRoute: typeof JanoImportRoute
+  JanoOcrRoute: typeof JanoOcrRoute
   JanoReaderRoute: typeof JanoReaderRoute
   MinervaConversaRoute: typeof MinervaConversaRoute
   BlogIndexRoute: typeof BlogIndexRoute
@@ -259,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/avatar'
       fullPath: '/avatar'
       preLoaderRoute: typeof AvatarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/credits': {
+      id: '/credits'
+      path: '/credits'
+      fullPath: '/credits'
+      preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loading': {
@@ -324,6 +357,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JanoImportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/jano/ocr': {
+      id: '/jano/ocr'
+      path: '/jano/ocr'
+      fullPath: '/jano/ocr'
+      preLoaderRoute: typeof JanoOcrRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/jano/reader': {
       id: '/jano/reader'
       path: '/jano/reader'
@@ -359,6 +399,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
   AvatarRoute: AvatarRoute,
+  CreditsRoute: CreditsRoute,
   LoadingRoute: LoadingRoute,
   SelectProfileRoute: SelectProfileRoute,
   SettingsRoute: SettingsRoute,
@@ -366,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogSubmitRoute: BlogSubmitRoute,
   JanoArticlesRoute: JanoArticlesRoute,
   JanoImportRoute: JanoImportRoute,
+  JanoOcrRoute: JanoOcrRoute,
   JanoReaderRoute: JanoReaderRoute,
   MinervaConversaRoute: MinervaConversaRoute,
   BlogIndexRoute: BlogIndexRoute,
