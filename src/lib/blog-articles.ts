@@ -4,6 +4,7 @@ export interface BlogArticle {
   cat: "Dislexia" | "TDAH" | "Autismo" | "Surdez";
   author: string;
   date: string;
+  source: string;
   summary: string;
   paragraphs: string[];
 }
@@ -22,6 +23,7 @@ export const articles: BlogArticle[] = [
     cat: "Dislexia",
     author: "Dra. Helena Costa",
     date: "12 mai 2025",
+    source: "Conteúdo editorial do Sistema Lire",
     summary: "Espaçamento, fontes e contraste que reduzem o esforço de leitura.",
     paragraphs: [
       "A tipografia pode transformar a experiência de leitura. Para pessoas com dislexia, escolhas como uma fonte bem desenhada, espaçamento generoso e linhas mais curtas ajudam a reduzir o esforço visual.",
@@ -35,6 +37,7 @@ export const articles: BlogArticle[] = [
     cat: "TDAH",
     author: "Anônimo",
     date: "03 mai 2025",
+    source: "Conteúdo editorial do Sistema Lire",
     summary: "Técnicas de leitura por blocos e pausas estruturadas.",
     paragraphs: [
       "Manter a atenção durante uma leitura longa pode ser mais fácil quando o conteúdo é dividido em blocos pequenos e objetivos.",
@@ -48,6 +51,7 @@ export const articles: BlogArticle[] = [
     cat: "Autismo",
     author: "Marcos Lima",
     date: "28 abr 2025",
+    source: "Conteúdo editorial do Sistema Lire",
     summary: "Por que a clareza visual importa tanto.",
     paragraphs: [
       "Uma apresentação previsível ajuda o leitor a entender o que esperar de cada parte do conteúdo. Títulos claros e uma hierarquia visual consistente reduzem a carga de interpretação.",
@@ -61,6 +65,7 @@ export const articles: BlogArticle[] = [
     cat: "Surdez",
     author: "Comunidade Lire",
     date: "20 abr 2025",
+    source: "Conteúdo editorial do Sistema Lire",
     summary: "Um guia introdutório para ouvintes.",
     paragraphs: [
       "Aprender Libras é também aprender uma nova forma de se relacionar com a comunidade surda. O primeiro passo é buscar materiais confiáveis e respeitar a cultura e a identidade de cada pessoa.",

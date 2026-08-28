@@ -10,6 +10,7 @@ import {
   Hand,
   Gauge,
   Bold,
+  Lock,
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -31,7 +32,7 @@ const defaultParagraphs = [
 ];
 
 function Reader() {
-  const { showUpgrade } = useApp();
+  const { isPremium, showUpgrade } = useApp();
   const [panelOpen, setPanelOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [playing, setPlaying] = useState(false);
@@ -134,6 +135,10 @@ function Reader() {
   };
 
   const toggleTts = () => {
+    if (!isPremium) {
+      showUpgrade("Narração por voz (TTS)");
+      return;
+    }
     if (typeof window === "undefined" || !("speechSynthesis" in window)) {
       showUpgrade("A narração por voz não está disponível neste navegador");
       return;
@@ -191,8 +196,9 @@ function Reader() {
             <Focus className="h-4 w-4" /> Modo Foco
           </Button>
           <Button variant="outline" size="sm" onClick={toggleTts}>
+            {!isPremium && <Lock className="h-4 w-4 text-accent" aria-label="TTS bloqueado" />}
+            <span>TTS</span>
             {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            <span className="ml-1">TTS</span>
           </Button>
           <Button variant="outline" size="sm" onClick={() => setPanelOpen(true)}>
             <Settings2 className="h-4 w-4" /> Ajustes

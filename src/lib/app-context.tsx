@@ -13,20 +13,21 @@ import { UpgradeModal } from "@/components/UpgradeModal";
 
 export type ModuleId = "jano" | "minerva";
 export type AppFont = "DM Sans" | "OpenDyslexic" | "OpenDyslexicAlta" | "OpenDyslexicMono";
+export type SubscriptionPlan = "free" | "monthly" | "annual";
 
 interface AppContextValue {
   module: ModuleId;
   setModule: (m: ModuleId) => void;
   isPremium: boolean;
   setIsPremium: (v: boolean) => void;
+  subscriptionPlan: SubscriptionPlan;
+  setSubscriptionPlan: (value: SubscriptionPlan) => void;
   /** Ask to switch module — shows confirmation modal first. */
   requestModuleSwitch: (target: ModuleId) => void;
   /** Show the premium upgrade modal for a given feature. */
   showUpgrade: (featureName: string) => void;
   darkMode: boolean;
   setDarkMode: (value: boolean) => void;
-  nightLight: boolean;
-  setNightLight: (value: boolean) => void;
   appFont: AppFont;
   setAppFont: (value: AppFont) => void;
 }
@@ -43,27 +44,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [module, setModule] = useState<ModuleId>("jano");
   const [isPremium, setIsPremium] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
   const [darkMode, setDarkModeState] = useState(false);
-  const [nightLight, setNightLightState] = useState(false);
   const [appFont, setAppFont] = useState<AppFont>("DM Sans");
 
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
   const [upgradeFeature, setUpgradeFeature] = useState<string | null>(null);
 
-  // Garante que LIGAR o Dark Mode DESLIGA a Luz Noturna
   const setDarkMode = useCallback((value: boolean) => {
     setDarkModeState(value);
-    if (value) {
-      setNightLightState(false);
-    }
-  }, []);
-
-  // Garante que LIGAR a Luz Noturna DESLIGA o Dark Mode
-  const setNightLight = useCallback((value: boolean) => {
-    setNightLightState(value);
-    if (value) {
-      setDarkModeState(false);
-    }
   }, []);
 
   const requestModuleSwitch = useCallback((target: ModuleId) => {
@@ -85,15 +74,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Carrega as configurações salvas na inicialização
   useEffect(() => {
     const isDark = localStorage.getItem("lire.black-mode") === "true";
-    const isNight = localStorage.getItem("lire.night-light") === "true";
-
-    if (isDark) {
-      setDarkModeState(true);
-      setNightLightState(false);
-    } else if (isNight) {
-      setNightLightState(true);
-      setDarkModeState(false);
-    }
+    setDarkModeState(isDark);
+    localStorage.removeItem("lire.night-light");
 
     const storedFont = localStorage.getItem("lire.app-font");
     if (
@@ -106,22 +88,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Gerencia as classes CSS no <html> e atualiza o localStorage
   useEffect(() => {
     const root = document.documentElement;
 
-    // Limpa ambas as classes antes de aplicar a ativa
-    root.classList.remove("dark", "night");
-
-    if (darkMode) {
-      root.classList.add("dark");
-    } else if (nightLight) {
-      root.classList.add("night");
-    }
+    root.classList.toggle("dark", darkMode);
 
     localStorage.setItem("lire.black-mode", String(darkMode));
-    localStorage.setItem("lire.night-light", String(nightLight));
-  }, [darkMode, nightLight]);
+  }, [darkMode]);
 
   // Atualiza a fonte global
   useEffect(() => {
@@ -135,16 +108,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setModule,
       isPremium,
       setIsPremium,
+      subscriptionPlan,
+      setSubscriptionPlan,
       requestModuleSwitch,
       showUpgrade,
       darkMode,
       setDarkMode,
-      nightLight,
-      setNightLight,
       appFont,
       setAppFont,
     }),
-    [module, isPremium, requestModuleSwitch, showUpgrade, darkMode, setDarkMode, nightLight, setNightLight, appFont],
+    [module, isPremium, subscriptionPlan, requestModuleSwitch, showUpgrade, darkMode, setDarkMode, appFont],
   );
 
   return (
@@ -161,8 +134,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         featureName={upgradeFeature ?? ""}
         onClose={() => setUpgradeFeature(null)}
         onSubscribe={() => {
-          setIsPremium(true);
           setUpgradeFeature(null);
+          navigate({ to: "/plans" });
         }}
       />
     </AppContext.Provider>

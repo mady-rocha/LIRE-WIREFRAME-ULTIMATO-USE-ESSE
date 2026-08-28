@@ -55,6 +55,12 @@ function Auth() {
         </div>
 
         <form onSubmit={submit} className="space-y-4">
+          {isSignup && (
+            <div className="space-y-1.5">
+              <Label htmlFor="first-name">Primeiro nome</Label>
+              <Input id="first-name" name="firstName" type="text" autoComplete="given-name" placeholder="Seu primeiro nome" required />
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail</Label>
             <Input id="email" type="email" autoComplete="email" placeholder="voce@email.com" required />
@@ -62,6 +68,13 @@ function Auth() {
           <div className="space-y-1.5">
             <Label htmlFor="password">Senha</Label>
             <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+            {!isSignup && (
+              <div className="text-right">
+                <Link to="/forgot-password" className="text-sm font-semibold text-accent hover:underline">
+                  Esqueci minha senha
+                </Link>
+              </div>
+            )}
           </div>
 
           <Button type="submit" className="h-11 w-full text-base">

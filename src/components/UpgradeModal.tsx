@@ -58,7 +58,7 @@ export function UpgradeModal({ open, featureName, onClose, onSubscribe }: Props)
           <Button variant="outline" onClick={onClose}>
             Agora não
           </Button>
-          <Button onClick={onSubscribe}>Assinar agora</Button>
+          <Button onClick={onSubscribe}>Ver planos</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

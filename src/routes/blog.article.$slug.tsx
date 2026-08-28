@@ -1,10 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, BookOpen, Bold, Focus, Gauge, Pause, Play, Settings2, Type, X } from "lucide-react";
+import { ArrowLeft, BookOpen, Bold, Focus, Gauge, Info, Lock, Pause, Play, Settings2, Type, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useApp } from "@/lib/app-context";
 import { catColor, findArticle } from "@/lib/blog-articles";
 
 export const Route = createFileRoute("/blog/article/$slug")({
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/blog/article/$slug")({
 
 function ArticlePage() {
   const { article } = Route.useLoaderData();
+  const { isPremium, showUpgrade } = useApp();
   const [panelOpen, setPanelOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
   const [bold, setBold] = useState(false);
@@ -62,6 +65,10 @@ function ArticlePage() {
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
 
   const toggleSpeech = () => {
+    if (!isPremium) {
+      showUpgrade("Narração por voz (TTS)");
+      return;
+    }
     if (!("speechSynthesis" in window)) return;
     if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
       window.speechSynthesis.pause();
@@ -85,7 +92,9 @@ function ArticlePage() {
             <Focus className="h-4 w-4" /> Modo Foco
           </Button>
           <Button variant="outline" size="sm" onClick={toggleSpeech}>
-            {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />} TTS
+            {!isPremium && <Lock className="h-4 w-4 text-accent" aria-label="TTS bloqueado" />}
+            <span>TTS</span>
+            {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
           </Button>
           <Button variant="outline" size="sm" onClick={() => setPanelOpen(true)}>
             <Settings2 className="h-4 w-4" /> Ajustes
@@ -106,7 +115,19 @@ function ArticlePage() {
           </span>
           <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-4xl">{article.title}</h1>
           <p className="mt-4 text-lg text-muted-foreground">{article.summary}</p>
-          <p className="mt-5 text-sm text-muted-foreground">{article.author} · {article.date}</p>
+          <div className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
+            <span>{article.author} · {article.date}</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span role="img" tabIndex={0} aria-label={`Fonte: ${article.source}`} className="rounded-full p-1 outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring">
+                    <Info className="h-4 w-4" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Fonte: {article.source}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
 
           <div className="mt-8 flex items-center gap-3 rounded-xl border border-secondary/30 bg-secondary/5 p-4 text-sm">
             <BookOpen className="h-5 w-5 shrink-0 text-secondary" />

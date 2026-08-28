@@ -136,12 +136,12 @@
   --radius: 0.75rem;
 
   /* Raw brand palette */
-  --brand-brown: #321c12;
+  --brand-brown: #da5f26;
   --brand-orange-dark: #b84e0f;
   --brand-salmon: #ee8549;
   --brand-blue-light: #4d9be6;
   --brand-navy: #1f38a1;
-  --brand-dark: #071441;
+  --brand-dark: #030303;
   --brand-cream: #f7e8da;
 
   --background: #f7e8da;
@@ -174,64 +174,53 @@
   --sidebar-ring: #4d9be6;
 }
 
-html.night {
-  --brand-brown: #ff9a54;
-  --background: #071441;
-  --foreground: #ff9a54;
-  --card: #0d1d52;
-  --card-foreground: #ff9a54;
-  --popover: #0d1d52;
-  --popover-foreground: #ff9a54;
-  --primary: #ee8549;
-  --primary-foreground: #071441;
-  --secondary: #4d9be6;
-  --secondary-foreground: #071441;
-  --muted: #142663;
-  --muted-foreground: #d5a27e;
-  --accent: #b84e0f;
-  --accent-foreground: #ffffff;
-  --destructive: #e5564e;
-  --destructive-foreground: #ffffff;
-  --border: rgba(247, 232, 218, 0.14);
-  --input: rgba(247, 232, 218, 0.18);
-  --ring: #4d9be6;
-
-  --sidebar: #04102f;
-  --sidebar-foreground: #ff9a54;
-  --sidebar-primary: #ee8549;
-  --sidebar-primary-foreground: #071441;
-  --sidebar-accent: #1f38a1;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(247, 232, 218, 0.12);
-  --sidebar-ring: #4d9be6;
-}
-
 html.dark {
   --background: #050505;
-  --foreground: #ff9a54;
+  --foreground: #ffffff;
   --card: #111111;
-  --card-foreground: #ff9a54;
+  --card-foreground: #ffffff;
   --popover: #111111;
-  --popover-foreground: #ff9a54;
+  --popover-foreground: #ffffff;
   --primary: #ff7a18;
   --primary-foreground: #050505;
   --secondary: #4d9be6;
   --secondary-foreground: #050505;
   --muted: #1c1c1c;
-  --muted-foreground: #b9c4e8;
+  --muted-foreground: #ffffff;
   --accent: #ff9a54;
   --accent-foreground: #050505;
   --border: #303030;
   --input: #303030;
   --ring: #ff9a54;
   --sidebar: #090909;
-  --sidebar-foreground: #ff9a54;
+  --sidebar-foreground: #ffffff;
   --sidebar-primary: #ff7a18;
   --sidebar-primary-foreground: #050505;
   --sidebar-accent: #1f38a1;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #303030;
   --sidebar-ring: #4d9be6;
+}
+
+html.dark .lucide {
+  color: var(--accent);
+}
+
+html.dark [role="navigation"].sidebar-shadow .lucide {
+  color: #ffffff;
+}
+
+html.dark [role="navigation"].sidebar-shadow :is(a, button):hover {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+}
+
+html.dark [role="navigation"].sidebar-shadow :is(a, button):hover .lucide {
+  color: var(--primary-foreground);
+}
+
+html.dark .ocr-unlock-icon {
+  color: #000000;
 }
 
 @layer base {

@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { FileImage, ScanText, Upload } from "lucide-react";
+import { FileImage, Lock, ScanText, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { saveDocument } from "@/lib/documents";
+import { useApp } from "@/lib/app-context";
 
 export const Route = createFileRoute("/jano/ocr")({
   head: () => ({ meta: [{ title: "OCR de imagem — Módulo Jano | Lire" }] }),
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/jano/ocr")({
 });
 
 function OcrPage() {
+  const { isPremium, showUpgrade } = useApp();
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const [reading, setReading] = useState(false);
@@ -54,7 +56,9 @@ function OcrPage() {
             <FileImage className="h-7 w-7" />
           </span>
           <h2 className="mt-5 font-display text-2xl font-bold">Transformar imagem em texto</h2>
-          <p className="mt-2 text-sm text-muted-foreground">Selecione uma imagem para reconhecer o texto e abrir no leitor Lire.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {isPremium ? "Selecione uma imagem para reconhecer o texto e abrir no leitor Lire." : "Este recurso faz parte do plano Premium."}
+          </p>
 
           <input
             ref={inputRef}
@@ -66,9 +70,9 @@ function OcrPage() {
               event.target.value = "";
             }}
           />
-          <Button type="button" className="mt-7 h-11 w-full text-base" onClick={() => inputRef.current?.click()} disabled={reading}>
-            <Upload className="h-4 w-4" />
-            {reading ? `Reconhecendo texto... ${progress}%` : "Selecionar imagem"}
+          <Button type="button" className="mt-7 h-11 w-full text-base" onClick={() => isPremium ? inputRef.current?.click() : showUpgrade("OCR de imagem")} disabled={reading}>
+            {isPremium ? <Upload className="h-4 w-4" /> : <Lock className="ocr-unlock-icon h-4 w-4" />}
+            {reading ? `Reconhecendo texto... ${progress}%` : isPremium ? "Selecionar imagem" : "Desbloquear com Premium"}
           </Button>
           {reading && <ScanText className="mx-auto mt-6 h-7 w-7 animate-pulse text-secondary" aria-label="Reconhecendo texto" />}
           {error && <p className="mt-4 text-sm text-destructive" role="alert">{error}</p>}

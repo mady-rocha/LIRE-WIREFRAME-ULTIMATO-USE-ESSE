@@ -1,10 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { User, UserCog, CreditCard, Type, ShieldCheck, Info, ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { PremiumBadge } from "@/components/PremiumBadge";
 import { useApp, type AppFont } from "@/lib/app-context";
 
 export const Route = createFileRoute("/settings")({
@@ -33,7 +32,8 @@ function Row({ label, action }: { label: string; action: ReactNode }) {
 }
 
 function SettingsScreen() {
-  const { module, isPremium, requestModuleSwitch, darkMode, setDarkMode, nightLight, setNightLight, appFont, setAppFont } = useApp();
+  const { module, isPremium, subscriptionPlan, requestModuleSwitch, darkMode, setDarkMode, appFont, setAppFont } = useApp();
+  const navigate = useNavigate();
 
   return (
     <AppShell title="Configurações">
@@ -60,10 +60,10 @@ function SettingsScreen() {
             <div>
               <p className="font-semibold">{isPremium ? "Premium" : "Gratuito"}</p>
               <p className="text-sm text-muted-foreground">
-                {isPremium ? "R$19,90/mês — renovação ativa" : "Recursos básicos disponíveis"}
+                {subscriptionPlan === "annual" ? "R$199,90/ano — renovação ativa" : subscriptionPlan === "monthly" ? "R$19,90/mês — renovação ativa" : "Recursos básicos disponíveis"}
               </p>
             </div>
-            {isPremium ? <PremiumBadge /> : <Button size="sm">Assinar Premium</Button>}
+            {isPremium ? <Button variant="outline" size="sm" onClick={() => navigate({ to: "/plans" })}>Alterar plano</Button> : <Button size="sm" onClick={() => navigate({ to: "/plans" })}>Assinar Premium</Button>}
           </div>
         </Section>
 
@@ -85,7 +85,6 @@ function SettingsScreen() {
             }
           />
           <Row label="Tamanho padrão" action={<span className="text-muted-foreground">20px</span>} />
-          <Row label="Luz noturna" action={<Switch checked={nightLight} onCheckedChange={setNightLight} aria-label="Luz noturna" />} />
           <Row label="Modo escuro" action={<Switch checked={darkMode} onCheckedChange={setDarkMode} aria-label="Modo escuro" />} />
         </Section>
 
@@ -97,8 +96,8 @@ function SettingsScreen() {
 
         <Section icon={Info} title="Sobre o Lire">
           <Row label="Versão" action={<span className="text-muted-foreground">1.0.0</span>} />
-          <Row label="Créditos" action={<Button variant="ghost" size="sm">Ver</Button>} />
-          <Row label="Política de privacidade" action={<Button variant="ghost" size="sm">Abrir</Button>} />
+          <Row label="Créditos" action={<Button variant="ghost" size="sm" onClick={() => navigate({ to: "/credits" })}>Ver</Button>} />
+          <Row label="Política de privacidade" action={<Button variant="ghost" size="sm" onClick={() => navigate({ to: "/privacy" })}>Abrir</Button>} />
         </Section>
       </div>
     </AppShell>

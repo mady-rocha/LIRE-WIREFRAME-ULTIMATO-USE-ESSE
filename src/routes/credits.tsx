@@ -1,12 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/credits')({
-  component: RouteComponent,
-})
-
-function RouteComponent() {
-  return <div>Hello "/credits"!</div>
-}
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -22,8 +13,7 @@ function CreditsScreen() {
 
   return (
     <AppShell title="Créditos">
-      <div className="mx-auto max-w-xl px-6 py-10 space-y-6">
-        {/* Botão Voltar para Configurações */}
+      <div className="mx-auto max-w-xl space-y-6 px-6 py-10">
         <Button
           variant="ghost"
           size="sm"
@@ -42,42 +32,34 @@ function CreditsScreen() {
 
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Grupo de TCC — Lire
+              Sistema Lire
             </h1>
-            <p className="text-sm font-medium text-accent mt-1">
-              3º Desenvolvimento de Sistemas
-            </p>
+            <p className="mt-1 text-sm font-medium text-accent">Plataforma Desktop de Tecnologia Assistiva</p>
+            <p className="mt-1 text-sm text-muted-foreground">Versão 1.0.0</p>
           </div>
 
           <hr className="border-border/60" />
 
-          {/* Equipe */}
           <div className="space-y-3">
             <h2 className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Users className="h-4 w-4" /> Integrantes
+              <Users className="h-4 w-4" /> Desenvolvido por
             </h2>
             <ul className="space-y-1.5 text-base font-medium text-foreground">
               <li>Gabriel Vidal</li>
               <li>Lethicia Laurindo</li>
               <li>Lucas Abreu</li>
               <li>Maria Eduarda</li>
-              <li>Yana Fonsenca</li>
+              <li>Yana Fonseca</li>
             </ul>
           </div>
 
           <hr className="border-border/60" />
 
-          {/* Orientação & Instituição */}
           <div className="space-y-1">
             <div className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <GraduationCap className="h-4 w-4" /> Orientação
+              <GraduationCap className="h-4 w-4" /> Instituição
             </div>
-            <p className="text-base font-semibold text-foreground pt-1">
-              Romeu Afecto
-            </p>
-            <p className="text-xs font-medium text-muted-foreground">
-              ETEC
-            </p>
+            <p className="pt-1 text-base font-semibold text-foreground">ETEC Albert Einstein - 3DS (2026)</p>
           </div>
         </div>
       </div>

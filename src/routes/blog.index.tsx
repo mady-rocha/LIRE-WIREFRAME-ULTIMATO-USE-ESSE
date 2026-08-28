@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Bell, CheckCircle2, Plus } from "lucide-react";
+import { Bell, CheckCircle2, Info, Plus } from "lucide-react";
 import { Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { listPendingArticles, type PendingArticle } from "@/lib/pending-articles";
 import { articles, catColor } from "@/lib/blog-articles";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({ meta: [{ title: "Blog — Lire" }] }),
@@ -108,23 +109,38 @@ function Blog() {
           ))}
         </div>
 
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          {list.map((a) => (
-            <Link
-              key={a.slug}
-              to="/blog/article/$slug"
-              params={{ slug: a.slug }}
-              className="flex flex-col rounded-xl border bg-card p-5 transition-colors hover:border-primary/50"
-            >
-              <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold ${catColor[a.cat]}`}>
-                {a.cat}
-              </span>
-              <h2 className="mt-3 font-display text-lg font-bold">{a.title}</h2>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
-              <p className="mt-4 text-xs text-muted-foreground">{a.author} · {a.date}</p>
-            </Link>
-          ))}
-        </div>
+        <TooltipProvider>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            {list.map((a) => (
+              <Link
+                key={a.slug}
+                to="/blog/article/$slug"
+                params={{ slug: a.slug }}
+                className="relative flex flex-col rounded-xl border bg-card p-5 transition-colors hover:border-primary/50"
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      role="img"
+                      tabIndex={0}
+                      aria-label={`Fonte: ${a.source}`}
+                      className="absolute right-4 top-4 rounded-full p-1 text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <Info className="h-4 w-4" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Fonte: {a.source}</TooltipContent>
+                </Tooltip>
+                <span className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold ${catColor[a.cat]}`}>
+                  {a.cat}
+                </span>
+                <h2 className="mt-3 font-display text-lg font-bold">{a.title}</h2>
+                <p className="mt-2 flex-1 text-sm text-muted-foreground">{a.summary}</p>
+                <p className="mt-4 text-xs text-muted-foreground">{a.author} · {a.date}</p>
+              </Link>
+            ))}
+          </div>
+        </TooltipProvider>
 
         {list.length === 0 && (
           <div className="mt-8 rounded-xl border border-dashed p-8 text-center">

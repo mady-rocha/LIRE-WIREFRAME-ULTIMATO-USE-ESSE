@@ -13,7 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AvatarRouteImport } from './routes/avatar'
 import { Route as CreditsRouteImport } from './routes/credits'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as LoadingRouteImport } from './routes/loading'
+import { Route as PlansRouteImport } from './routes/plans'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SelectProfileRouteImport } from './routes/select-profile'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -48,9 +51,24 @@ const CreditsRoute = CreditsRouteImport.update({
   path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoadingRoute = LoadingRouteImport.update({
   id: '/loading',
   path: '/loading',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SelectProfileRoute = SelectProfileRouteImport.update({
@@ -124,7 +142,10 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
   '/credits': typeof CreditsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/loading': typeof LoadingRoute
+  '/plans': typeof PlansRoute
+  '/privacy': typeof PrivacyRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -144,7 +165,10 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
   '/credits': typeof CreditsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/loading': typeof LoadingRoute
+  '/plans': typeof PlansRoute
+  '/privacy': typeof PrivacyRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -165,7 +189,10 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/avatar': typeof AvatarRoute
   '/credits': typeof CreditsRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/loading': typeof LoadingRoute
+  '/plans': typeof PlansRoute
+  '/privacy': typeof PrivacyRoute
   '/select-profile': typeof SelectProfileRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -187,7 +214,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/avatar'
     | '/credits'
+    | '/forgot-password'
     | '/loading'
+    | '/plans'
+    | '/privacy'
     | '/select-profile'
     | '/settings'
     | '/sitemap.xml'
@@ -207,7 +237,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/avatar'
     | '/credits'
+    | '/forgot-password'
     | '/loading'
+    | '/plans'
+    | '/privacy'
     | '/select-profile'
     | '/settings'
     | '/sitemap.xml'
@@ -227,7 +260,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/avatar'
     | '/credits'
+    | '/forgot-password'
     | '/loading'
+    | '/plans'
+    | '/privacy'
     | '/select-profile'
     | '/settings'
     | '/sitemap.xml'
@@ -248,7 +284,10 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   AvatarRoute: typeof AvatarRoute
   CreditsRoute: typeof CreditsRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoadingRoute: typeof LoadingRoute
+  PlansRoute: typeof PlansRoute
+  PrivacyRoute: typeof PrivacyRoute
   SelectProfileRoute: typeof SelectProfileRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -294,11 +333,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CreditsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/loading': {
       id: '/loading'
       path: '/loading'
       fullPath: '/loading'
       preLoaderRoute: typeof LoadingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/select-profile': {
@@ -400,7 +460,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   AvatarRoute: AvatarRoute,
   CreditsRoute: CreditsRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoadingRoute: LoadingRoute,
+  PlansRoute: PlansRoute,
+  PrivacyRoute: PrivacyRoute,
   SelectProfileRoute: SelectProfileRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
