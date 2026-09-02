@@ -23,12 +23,12 @@ export const Route = createFileRoute("/")({
 
 function Splash() {
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center bg-brand-dark px-6 text-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center bg-sidebar px-6 text-center text-brand-cream">
       <Logo size={88} variant="light" />
       <h1 className="mt-8 font-display text-6xl font-extrabold tracking-tight text-brand-cream">
         Lire
       </h1>
-      <p className="mt-4 max-w-md text-lg text-brand-cream/70">
+      <p className="mt-4 max-w-md text-lg text-brand-cream/80">
         Tecnologia assistiva para leitura acessível e comunicação em Libras. Dignidade pelo
         minimalismo.
       </p>
@@ -43,7 +43,7 @@ function Splash() {
           asChild
           size="lg"
           variant="outline"
-          className="h-12 border-brand-cream/30 bg-transparent text-base text-brand-cream hover:bg-brand-cream/10 hover:text-brand-cream"
+          className="h-12 border-brand-cream/40 bg-transparent text-base text-brand-cream hover:bg-brand-cream/15 hover:text-brand-cream"
         >
           <Link to="/auth" search={{ mode: "login" }}>
             Já tenho conta

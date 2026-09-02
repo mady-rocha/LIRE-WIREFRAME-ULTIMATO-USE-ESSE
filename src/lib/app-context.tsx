@@ -45,6 +45,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [module, setModule] = useState<ModuleId>("jano");
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
+  const [planLoaded, setPlanLoaded] = useState(false);
   const [darkMode, setDarkModeState] = useState(false);
   const [appFont, setAppFont] = useState<AppFont>("DM Sans");
 
@@ -77,6 +78,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setDarkModeState(isDark);
     localStorage.removeItem("lire.night-light");
 
+    const storedPlan = localStorage.getItem("lire.subscription-plan");
+    if (storedPlan === "free" || storedPlan === "monthly" || storedPlan === "annual") {
+      setSubscriptionPlan(storedPlan);
+      setIsPremium(storedPlan !== "free");
+    }
+    setPlanLoaded(true);
+
     const storedFont = localStorage.getItem("lire.app-font");
     if (
       storedFont === "DM Sans" ||
@@ -101,6 +109,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     document.documentElement.style.setProperty("--app-font", `"${appFont}", sans-serif`);
     localStorage.setItem("lire.app-font", appFont);
   }, [appFont]);
+
+  useEffect(() => {
+    if (planLoaded) localStorage.setItem("lire.subscription-plan", subscriptionPlan);
+  }, [planLoaded, subscriptionPlan]);
 
   const value = useMemo<AppContextValue>(
     () => ({

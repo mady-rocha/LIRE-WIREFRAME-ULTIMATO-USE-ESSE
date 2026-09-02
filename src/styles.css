@@ -206,6 +206,16 @@ html.dark .lucide {
   color: var(--accent);
 }
 
+html.dark :is(input, textarea, select)::placeholder {
+  color: #d6d6d6;
+  opacity: 1;
+}
+
+html.dark .lucide.opacity-50 {
+  color: #ffffff;
+  opacity: 1;
+}
+
 html.dark [role="navigation"].sidebar-shadow .lucide {
   color: #ffffff;
 }
@@ -221,6 +231,68 @@ html.dark [role="navigation"].sidebar-shadow :is(a, button):hover .lucide {
 
 html.dark .ocr-unlock-icon {
   color: #000000;
+}
+
+.admin-action-icon,
+.admin-submit-icon {
+  color: #030303 !important;
+}
+
+.admin-outline-action-icon {
+  color: #030303 !important;
+}
+
+.admin-logout-icon {
+  color: var(--accent) !important;
+}
+
+.admin-logout-button {
+  color: #030303 !important;
+}
+
+.admin-logout-button:hover {
+  background-color: var(--primary) !important;
+  color: #030303 !important;
+}
+
+.admin-logout-button:hover .admin-logout-icon {
+  color: #030303 !important;
+}
+
+.admin-back-icon {
+  color: #030303 !important;
+}
+
+html.dark .admin-back-icon {
+  color: #030303 !important;
+}
+
+html.dark :is(.admin-action-icon, .admin-submit-icon, .admin-logout-icon) {
+  color: #030303 !important;
+}
+
+html.dark .admin-outline-action-icon {
+  color: #ffffff !important;
+}
+
+html.dark .admin-logout-button {
+  color: #ffffff !important;
+}
+
+html.dark .admin-logout-icon {
+  color: #ffffff !important;
+}
+
+html.dark .admin-logout-button:hover {
+  color: #ffffff !important;
+}
+
+html.dark .admin-logout-button:hover .admin-logout-icon {
+  color: #ffffff !important;
+}
+
+html.dark .admin-camera-icon {
+  color: #ffffff !important;
 }
 
 @layer base {

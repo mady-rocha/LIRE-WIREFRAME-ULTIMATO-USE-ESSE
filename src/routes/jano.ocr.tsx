@@ -32,8 +32,12 @@ function OcrPage() {
           if (message.status === "recognizing text") setProgress(Math.round((message.progress ?? 0) * 100));
         },
       });
-      const result = await worker.recognize(file);
-      await worker.terminate();
+      let result;
+      try {
+        result = await worker.recognize(file);
+      } finally {
+        await worker.terminate();
+      }
       const content = result.data.text.trim();
       if (!content) throw new Error("Nenhum texto foi encontrado na imagem.");
 
