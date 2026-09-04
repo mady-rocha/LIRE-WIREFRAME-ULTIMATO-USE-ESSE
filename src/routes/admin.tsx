@@ -17,7 +17,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Logo } from "@/components/Logo";
-import { listPendingArticles, type PendingArticle } from "@/lib/pending-articles";
+import {
+  approveArticleSubmission,
+  listArticleSubmissions,
+  rejectArticleSubmission,
+  type ArticleSubmission,
+} from "@/lib/blog-submissions";
 import {
   listAdminBlogPosts,
   listGestureSuggestions,
@@ -108,21 +113,25 @@ function AdminPage() {
   const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
   const [suggestions, setSuggestions] = useState<GestureSuggestion[]>([]);
-  const [pendingArticles, setPendingArticles] = useState<PendingArticle[]>([]);
+  const [pendingArticles, setPendingArticles] = useState<ArticleSubmission[]>([]);
   const [implemented, setImplemented] = useState<ImplementedGesture[]>([]);
   const [posts, setPosts] = useState<AdminBlogPost[]>([]);
   const [notice, setNotice] = useState("");
 
-  const refresh = () => {
+  const refresh = async () => {
     setSuggestions(listGestureSuggestions());
-    setPendingArticles(listPendingArticles());
+    try {
+      setPendingArticles(await listArticleSubmissions());
+    } catch {
+      setPendingArticles([]);
+    }
     setImplemented(listImplementedGestures());
     setPosts(listAdminBlogPosts());
   };
 
   useEffect(() => {
     setAuthenticated(sessionStorage.getItem("lire.admin-authenticated") === "true");
-    refresh();
+    void refresh();
     window.addEventListener("lire:admin-data-changed", refresh);
     window.addEventListener("lire:pending-articles-changed", refresh);
     return () => {
@@ -136,7 +145,7 @@ function AdminPage() {
       <AdminLogin
         onLogin={() => {
           setAuthenticated(true);
-          refresh();
+          void refresh();
         }}
       />
     );
@@ -409,18 +418,18 @@ function ArticleReview({
   articles: PendingArticle[];
   onUpdated: () => void;
 }) {
-  const update = (id: string, status: "aprovado" | "rejeitado") => {
-    const stored = JSON.parse(
-      localStorage.getItem("lire.pending-articles") ?? "[]",
-    ) as PendingArticle[];
-    localStorage.setItem(
-      "lire.pending-articles",
-      JSON.stringify(
-        stored.map((article) => (article.id === id ? { ...article, status } : article)),
-      ),
-    );
-    window.dispatchEvent(new Event("lire:pending-articles-changed"));
-    onUpdated();
+  const update = async (article: ArticleSubmission, status: "aprovado" | "rejeitado") => {
+    try {
+      if (status === "aprovado") {
+        await approveArticleSubmission(article);
+      } else {
+        await rejectArticleSubmission(article.id);
+      }
+      onUpdated();
+    } catch (error) {
+      console.error("Não foi possível atualizar o artigo.", error);
+      onUpdated();
+    }
   };
   return (
     <section className="rounded-2xl border bg-card p-6">
@@ -443,7 +452,7 @@ function ArticleReview({
               <Button
                 size="icon"
                 aria-label={`Aprovar artigo ${article.title}`}
-                onClick={() => update(article.id, "aprovado")}
+                onClick={() => void update(article, "aprovado")}
               >
                 <Check className="admin-action-icon h-4 w-4" />
               </Button>
@@ -451,7 +460,7 @@ function ArticleReview({
                 size="icon"
                 variant="outline"
                 aria-label={`Rejeitar artigo ${article.title}`}
-                onClick={() => update(article.id, "rejeitado")}
+                onClick={() => void update(article, "rejeitado")}
               >
                 <X className="admin-outline-action-icon h-4 w-4" />
               </Button>

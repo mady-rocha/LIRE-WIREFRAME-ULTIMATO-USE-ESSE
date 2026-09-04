@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
-import { savePendingArticle } from "@/lib/pending-articles";
+import { createArticleSubmission } from "@/lib/blog-submissions";
 import {
   Select,
   SelectContent,
@@ -28,6 +28,8 @@ function Submit() {
   const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedTitle, setSubmittedTitle] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <AppShell title="Enviar artigo">
@@ -59,13 +61,27 @@ function Submit() {
         </section>
       ) : (
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           const form = e.currentTarget;
-          const title = new FormData(form).get("title");
-          setSubmittedTitle(String(title));
-          savePendingArticle(String(title));
-          setSubmitted(true);
+          const data = new FormData(form);
+          setError("");
+          setIsLoading(true);
+          try {
+            await createArticleSubmission({
+              titulo: String(data.get("title")),
+              corpo: String(data.get("body")),
+              referencias: String(data.get("references") ?? ""),
+              categoria: String(data.get("category")),
+              anonimo,
+            });
+            setSubmittedTitle(String(data.get("title")));
+            setSubmitted(true);
+          } catch (submissionError) {
+            setError(submissionError instanceof Error ? submissionError.message : "Não foi possível enviar o artigo.");
+          } finally {
+            setIsLoading(false);
+          }
         }}
         className="mx-auto max-w-2xl space-y-6 px-6 py-8"
       >
@@ -89,7 +105,7 @@ function Submit() {
 
         <div className="mt-6 space-y-1.5">
           <Label htmlFor="cat">Categoria</Label>
-          <Select>
+          <Select name="category" required>
             <SelectTrigger id="cat">
               <SelectValue placeholder="Selecione uma categoria" />
             </SelectTrigger>
@@ -104,7 +120,7 @@ function Submit() {
 
         <div className="mt-6 space-y-1.5">
           <Label htmlFor="body">Corpo do texto</Label>
-          <Textarea id="body" placeholder="Escreva seu artigo…" className="min-h-48" required />
+          <Textarea id="body" name="body" placeholder="Escreva seu artigo…" className="min-h-48" required />
         </div>
 
         <div className="mt-6 space-y-1.5">
@@ -128,8 +144,9 @@ function Submit() {
         </div>
 
         </div>
-        <Button type="submit" size="lg" className="w-full" disabled={!consent}>
-          <Send className="h-4 w-4" /> Enviar para revisão
+        {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
+        <Button type="submit" size="lg" className="w-full" disabled={!consent || isLoading}>
+          <Send className="h-4 w-4" /> {isLoading ? "Enviando..." : "Enviar para revisão"}
         </Button>
       </form>
       )}

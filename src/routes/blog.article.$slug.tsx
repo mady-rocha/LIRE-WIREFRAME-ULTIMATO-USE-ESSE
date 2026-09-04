@@ -8,10 +8,22 @@ import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/lib/app-context";
 import { catColor, findArticle } from "@/lib/blog-articles";
+import { publishedRowToBlogArticle } from "@/lib/blog-submissions";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/blog/article/$slug")({
-  loader: ({ params }) => {
-    const article = findArticle(params.slug);
+  loader: async ({ params }) => {
+    let article = findArticle(params.slug);
+    if (!article && params.slug.startsWith("community-")) {
+      const id = params.slug.replace("community-", "");
+      const { data } = await supabase
+        .from("artigo_blog")
+        .select("id, id_admin, titulo, corpo, referencias, categoria, status, data_envio")
+        .eq("id", id)
+        .eq("status", "publicado")
+        .maybeSingle();
+      if (data) article = publishedRowToBlogArticle(data);
+    }
     if (!article) throw notFound();
     return { article };
   },
