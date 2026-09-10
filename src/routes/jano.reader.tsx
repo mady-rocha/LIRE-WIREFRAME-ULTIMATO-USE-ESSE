@@ -18,6 +18,13 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { useApp } from "@/lib/app-context";
 import { getDocument, updateDocumentProgress } from "@/lib/documents";
+import {
+  defaultReadingPreferences,
+  loadReadingPreferencesFromSupabase,
+  readLocalReadingPreferences,
+  saveReadingPreferencesToSupabase,
+  type ReadingPreferences,
+} from "@/lib/reading-preferences";
 
 export const Route = createFileRoute("/jano/reader")({
   head: () => ({ meta: [{ title: "Leitor — Módulo Jano | Lire" }] }),
@@ -34,20 +41,51 @@ const defaultParagraphs = [
 function Reader() {
   const { isPremium, showUpgrade } = useApp();
   const [panelOpen, setPanelOpen] = useState(false);
-  const [focusMode, setFocusMode] = useState(false);
+  const [focusMode, setFocusMode] = useState(defaultReadingPreferences.modo_foco);
   const [playing, setPlaying] = useState(false);
   const [activeTtsRange, setActiveTtsRange] = useState<{ start: number; end: number } | null>(null);
   const [activePara, setActivePara] = useState(1);
   const [activeSentence, setActiveSentence] = useState<string | null>(null);
-  const [fontSize, setFontSize] = useState([20]);
-  const [lineHeight, setLineHeight] = useState([180]);
+  const [fontSize, setFontSize] = useState([defaultReadingPreferences.tamanho_fonte]);
+  const [lineHeight, setLineHeight] = useState([defaultReadingPreferences.espacamento_linha]);
   const [dyslexic, setDyslexic] = useState(false);
   const [bold, setBold] = useState(false);
-  const [ttsSpeed, setTtsSpeed] = useState([100]);
-  const [contrast, setContrast] = useState<"claro" | "escuro" | "alto">("claro");
+  const [ttsSpeed, setTtsSpeed] = useState([defaultReadingPreferences.velocidade_tts]);
+  const [contrast, setContrast] = useState<"claro" | "escuro" | "alto">(
+    defaultReadingPreferences.modo_tema === "alto" ? "alto" : "escuro", 
+  );
   const [documentName, setDocumentName] = useState("Neurociência da leitura.pdf");
   const [paragraphs, setParagraphs] = useState(defaultParagraphs);
   const [documentId, setDocumentId] = useState<string | null>(null);
+
+  const persistPreferences = async (next: ReadingPreferences) => {
+    await saveReadingPreferencesToSupabase(next);
+  };
+
+  const buildReadingPreferencesFromUi = (): ReadingPreferences => ({
+    fonte: dyslexic ? "OpenDyslexic" : "DM Sans",
+    tamanho_fonte: fontSize[0],
+    espacamento_linha: lineHeight[0],
+    modo_tema: contrast === "alto" ? "alto" : "escuro",
+    modo_foco: focusMode,
+    velocidade_tts: ttsSpeed[0],
+  });
+
+  useEffect(() => {
+    const localPreferences = readLocalReadingPreferences();
+    const loadedFromLocal = { ...localPreferences };
+    const load = async () => {
+      const cloudPreferences = await loadReadingPreferencesFromSupabase();
+      const finalPreferences = cloudPreferences ?? loadedFromLocal;
+      setFontSize([finalPreferences.tamanho_fonte]);
+      setLineHeight([finalPreferences.espacamento_linha]);
+      setTtsSpeed([finalPreferences.velocidade_tts]);
+      setFocusMode(finalPreferences.modo_foco);
+      setContrast(finalPreferences.modo_tema === "alto" ? "alto" : "escuro");
+      setDyslexic(finalPreferences.fonte === "OpenDyslexic");
+    };
+    void load();
+  }, []);
   useEffect(() => {
     const stored = sessionStorage.getItem("lire.pending-document");
     if (!stored) return;
@@ -161,11 +199,21 @@ function Reader() {
   };
 
   const changeTtsSpeed = (value: number[]) => {
-    setTtsSpeed(value);
+    const nextSpeed = value[0];
+    setTtsSpeed([nextSpeed]);
+    const nextPreferences: ReadingPreferences = {
+      fonte: dyslexic ? "OpenDyslexic" : "DM Sans",
+      tamanho_fonte: fontSize[0],
+      espacamento_linha: lineHeight[0],
+      modo_tema: contrast === "alto" ? "alto" : "escuro",
+      modo_foco: focusMode,
+      velocidade_tts: nextSpeed,
+    };
+    void persistPreferences(nextPreferences);
     if (typeof window !== "undefined" && "speechSynthesis" in window &&
       (window.speechSynthesis.speaking || window.speechSynthesis.paused)) {
       setActiveTtsRange(null);
-      speakText(value[0]);
+      speakText(nextSpeed);
     }
   };
 
@@ -191,7 +239,13 @@ function Reader() {
           <Button
             variant={focusMode ? "default" : "outline"}
             size="sm"
-            onClick={() => setFocusMode((v) => !v)}
+            onClick={() => {
+              const nextFocusMode = !focusMode;
+              setFocusMode(nextFocusMode);
+              const nextPreferences = buildReadingPreferencesFromUi();
+              nextPreferences.modo_foco = nextFocusMode;
+              void persistPreferences(nextPreferences);
+            }}
           >
             <Focus className="h-4 w-4" /> Modo Foco
           </Button>
@@ -280,7 +334,13 @@ function Reader() {
             <div>
               <Label className="flex items-center gap-2"><Type className="h-4 w-4" /> Tipografia</Label>
               <button
-                onClick={() => setDyslexic((v) => !v)}
+                onClick={() => {
+                  const next = !dyslexic;
+                  setDyslexic(next);
+                  const nextPreferences = buildReadingPreferencesFromUi();
+                  nextPreferences.fonte = next ? "OpenDyslexic" : "DM Sans";
+                  void persistPreferences(nextPreferences);
+                }}
                 className={`mt-2 w-full rounded-lg border px-3 py-2 text-left text-sm ${dyslexic ? "border-primary bg-primary/10" : ""}`}
               >
                 Fonte OpenDyslexic {dyslexic ? "(ativa)" : ""}
@@ -296,12 +356,38 @@ function Reader() {
 
             <div>
               <Label>Tamanho do texto — {fontSize[0]}px</Label>
-              <Slider className="mt-3" min={14} max={32} step={1} value={fontSize} onValueChange={setFontSize} />
+              <Slider
+                className="mt-3"
+                min={14}
+                max={32}
+                step={1}
+                value={fontSize}
+                onValueChange={(value) => {
+                  const next = value[0];
+                  setFontSize([next]);
+                  const nextPreferences = buildReadingPreferencesFromUi();
+                  nextPreferences.tamanho_fonte = next;
+                  void persistPreferences(nextPreferences);
+                }}
+              />
             </div>
 
             <div>
               <Label>Espaçamento entre linhas — {lineHeight[0]}%</Label>
-              <Slider className="mt-3" min={120} max={260} step={10} value={lineHeight} onValueChange={setLineHeight} />
+              <Slider
+                className="mt-3"
+                min={120}
+                max={260}
+                step={10}
+                value={lineHeight}
+                onValueChange={(value) => {
+                  const next = value[0];
+                  setLineHeight([next]);
+                  const nextPreferences = buildReadingPreferencesFromUi();
+                  nextPreferences.espacamento_linha = next;
+                  void persistPreferences(nextPreferences);
+                }}
+              />
             </div>
 
             <div>
@@ -310,7 +396,14 @@ function Reader() {
                 {(["claro", "escuro", "alto"] as const).map((c) => (
                   <button
                     key={c}
-                    onClick={() => setContrast(c)}
+                    onClick={() => {
+                      const nextContrast = c;
+                      const persistedTheme = nextContrast === "alto" ? "alto" : "escuro";
+                      setContrast(nextContrast);
+                      const nextPreferences = buildReadingPreferencesFromUi();
+                      nextPreferences.modo_tema = persistedTheme;
+                      void persistPreferences(nextPreferences);
+                    }}
                     className={`rounded-lg border px-2 py-2 text-xs capitalize ${contrast === c ? "border-primary bg-primary/10" : ""}`}
                   >
                     {c === "alto" ? "Alto contraste" : c}
@@ -327,7 +420,7 @@ function Reader() {
                 max={200}
                 step={10}
                 value={ttsSpeed}
-                onValueChange={changeTtsSpeed}
+                onValueChange={(value) => changeTtsSpeed(value)}
               />
             </div>
 
