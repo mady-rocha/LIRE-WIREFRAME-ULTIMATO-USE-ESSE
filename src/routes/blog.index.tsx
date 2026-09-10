@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { articles, catColor } from "@/lib/blog-articles";
 import { listArticleSubmissions, listPublishedArticleRows, publishedRowToBlogArticle, type ArticleSubmission } from "@/lib/blog-submissions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({ meta: [{ title: "Blog — Lire" }] }),
@@ -22,7 +23,7 @@ function Blog() {
   const [publishedArticles, setPublishedArticles] = useState<typeof articles>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
-  const allArticles = [...articles, ...publishedArticles];
+  const allArticles = publishedArticles;
   const list = allArticles.filter((article) => {
     const matchesCategory = active === "Todos" || article.cat === active;
     const searchableText = `${article.title} ${article.cat} ${article.author} ${article.summary}`.toLocaleLowerCase("pt-BR");
@@ -31,18 +32,62 @@ function Blog() {
 
   useEffect(() => {
     const loadArticles = async () => {
+      setPendingArticles([]);
+      setPublishedArticles([]);
+
       const [pending, published] = await Promise.all([
         listArticleSubmissions(),
         listPublishedArticleRows(),
       ]);
+
+      const hydratedPublished = await Promise.all(
+        published.map(async (row) => {
+          if (row.anonimo || !row.id_usuario) {
+            return { ...row, autor_nome: row.anonimo ? "Anônimo" : null };
+          }
+
+          try {
+            const { data: profile } = await supabase
+              .from("usuario")
+              .select("nome")
+              .eq("id", row.id_usuario)
+              .maybeSingle();
+
+            return { ...row, autor_nome: profile?.nome ?? null };
+          } catch {
+            return { ...row, autor_nome: null };
+          }
+        }),
+      );
+
       setPendingArticles(pending);
-      setPublishedArticles(published.map(publishedRowToBlogArticle));
+      setPublishedArticles(hydratedPublished.map(publishedRowToBlogArticle));
     };
 
     void loadArticles().catch(() => {
       setPendingArticles([]);
       setPublishedArticles([]);
     });
+
+    const channel = supabase
+      .channel("blog-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "artigo_blog" }, () => {
+        void loadArticles().catch(() => {
+          setPendingArticles([]);
+          setPublishedArticles([]);
+        });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "submissao_artigo" }, () => {
+        void loadArticles().catch(() => {
+          setPendingArticles([]);
+          setPublishedArticles([]);
+        });
+      })
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   return (

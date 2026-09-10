@@ -35,7 +35,7 @@ export function Sidebar({ open, onClose }: Props) {
       ]
     : [
         { label: "Início", to: "/jano", icon: Home },
-        { label: "Meus Documentos", to: "/jano/reader", icon: FileText },
+        { label: "Meus Documentos", to: "/jano/files", icon: FileText },
         { label: "Blog", to: "/blog", icon: Newspaper },
         { label: "Configurações", to: "/settings", icon: Settings },
       ];

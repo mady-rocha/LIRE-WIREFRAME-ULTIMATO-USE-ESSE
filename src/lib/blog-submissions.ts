@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { BlogArticle } from "@/lib/blog-articles";
 
-export type SubmissionStatus = "pendente" | "aprovado" | "rejeitado";
+export type SubmissionStatus = "pendente" | "aprovado" | "recusado";
 
 export interface ArticleSubmission {
   id: string;
@@ -19,6 +19,9 @@ export interface ArticleSubmission {
 export interface PublishedArticleRow {
   id: string;
   id_admin: string | null;
+  id_usuario?: string | null;
+  anonimo?: boolean | null;
+  autor_nome?: string | null;
   titulo: string;
   corpo: string;
   referencias: string | null;
@@ -62,9 +65,39 @@ export async function listArticleSubmissions() {
   return (data ?? []) as ArticleSubmission[];
 }
 
+async function resolveAdminIdForApproval(): Promise<string | null> {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+
+  const userId = sessionData.session?.user.id ?? null;
+  if (!userId) return null;
+
+  try {
+    const { data: adminRow, error: adminLookupError } = await supabase
+      .from("administrador")
+      .select("id")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (adminLookupError) {
+      if (adminLookupError.code === "42501" || adminLookupError.message.toLowerCase().includes("permission denied")) {
+        return null;
+      }
+      throw adminLookupError;
+    }
+
+    return adminRow?.id ?? null;
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error ?? "");
+    if (message.toLowerCase().includes("permission denied") || message.includes("42501")) {
+      return null;
+    }
+    throw error;
+  }
+}
+
 export async function approveArticleSubmission(submission: ArticleSubmission) {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const adminId = sessionData.session?.user.id ?? null;
+  const adminId = await resolveAdminIdForApproval();
 
   const { error: publishError } = await supabase.from("artigo_blog").insert({
     id_admin: adminId,
@@ -88,7 +121,7 @@ export async function approveArticleSubmission(submission: ArticleSubmission) {
 export async function rejectArticleSubmission(id: string) {
   const { error } = await supabase
     .from("submissao_artigo")
-    .update({ status: "rejeitado" })
+    .update({ status: "recusado" })
     .eq("id", id);
 
   if (error) throw error;
@@ -97,7 +130,7 @@ export async function rejectArticleSubmission(id: string) {
 export async function listPublishedArticleRows() {
   const { data, error } = await supabase
     .from("artigo_blog")
-    .select("id, id_admin, titulo, corpo, referencias, categoria, status, data_envio")
+    .select("*")
     .eq("status", "publicado")
     .order("data_envio", { ascending: false });
 
@@ -111,11 +144,22 @@ export function publishedRowToBlogArticle(row: PublishedArticleRow): BlogArticle
     : "Dislexia";
   const paragraphs = row.corpo.split(/\n\s*\n/).map((paragraph) => paragraph.trim()).filter(Boolean);
 
+  const rowWithMetadata = row as PublishedArticleRow & {
+    id_usuario?: string | null;
+    anonimo?: boolean | null;
+    autor_nome?: string | null;
+  };
+
+  const isAnonymous = rowWithMetadata.anonimo === true;
+  const author = isAnonymous
+    ? "Anônimo"
+    : (rowWithMetadata.autor_nome?.trim() || (rowWithMetadata.id_usuario ? "Usuário" : "Comunidade Lire"));
+
   return {
     slug: `community-${row.id}`,
     title: row.titulo,
     cat: category,
-    author: "Comunidade Lire",
+    author,
     date: new Date(row.data_envio).toLocaleDateString("pt-BR"),
     source: row.referencias || "Conteúdo enviado pela comunidade Lire",
     summary: paragraphs[0]?.slice(0, 160) || row.titulo,

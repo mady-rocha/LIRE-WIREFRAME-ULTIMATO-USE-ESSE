@@ -1,6 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BookOpen, Bold, Focus, Gauge, Info, Lock, Pause, Play, Settings2, Type, X } from "lucide-react";
+
+function extractReferenceLinks(value?: string | null) {
+  const text = (value ?? "").trim();
+  if (!text) return [];
+
+  const matches = text.match(/https?:\/\/[^\s,]+|www\.[^\s,]+/gi) ?? [];
+  return matches
+    .map((candidate) => candidate.replace(/[).,;]+$/, ""))
+    .filter(Boolean);
+}
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,7 +32,9 @@ export const Route = createFileRoute("/blog/article/$slug")({
         .eq("id", id)
         .eq("status", "publicado")
         .maybeSingle();
-      if (data) article = publishedRowToBlogArticle(data);
+      if (data) {
+        article = publishedRowToBlogArticle({ ...data, autor_nome: null });
+      }
     }
     if (!article) throw notFound();
     return { article };
@@ -50,6 +62,7 @@ function ArticlePage() {
   const [playing, setPlaying] = useState(false);
   const [ttsSpeed, setTtsSpeed] = useState([100]);
   const [activeTtsRange, setActiveTtsRange] = useState<{ start: number; end: number } | null>(null);
+  const referenceLinks = extractReferenceLinks(article.source);
   const sentences = article.paragraphs.map((paragraph) => paragraph.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [paragraph]);
   const ttsText = article.paragraphs.join("\n\n");
   const ttsSegments: Array<{ id: string; start: number; end: number }> = [];
@@ -160,6 +173,21 @@ function ArticlePage() {
               </p>;
             })}
           </div>
+
+          {referenceLinks.length > 0 && (
+            <div className="mt-8 rounded-2xl border bg-card p-5">
+              <h2 className="font-display text-lg font-bold">Referências</h2>
+              <ul className="mt-3 space-y-2 text-sm text-accent">
+                {referenceLinks.map((link) => (
+                  <li key={link}>
+                    <a href={link} target="_blank" rel="noreferrer" className="break-all underline-offset-4 hover:underline">
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </article>
 
         {panelOpen && <button aria-label="Fechar painel" onClick={() => setPanelOpen(false)} className="fixed inset-0 z-40 bg-brand-dark/25" />}

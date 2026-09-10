@@ -24,7 +24,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSubmitRouteImport } from './routes/blog.submit'
 import { Route as JanoIndexRouteImport } from './routes/jano.index'
-import { Route as JanoArticlesRouteImport } from './routes/jano.articles'
+import { Route as JanoFilesRouteImport } from './routes/jano.files'
 import { Route as JanoImportRouteImport } from './routes/jano.import'
 import { Route as JanoOcrRouteImport } from './routes/jano.ocr'
 import { Route as JanoReaderRouteImport } from './routes/jano.reader'
@@ -107,9 +107,9 @@ const JanoIndexRoute = JanoIndexRouteImport.update({
   path: '/jano/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const JanoArticlesRoute = JanoArticlesRouteImport.update({
-  id: '/jano/articles',
-  path: '/jano/articles',
+const JanoFilesRoute = JanoFilesRouteImport.update({
+  id: '/jano/files',
+  path: '/jano/files',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JanoImportRoute = JanoImportRouteImport.update({
@@ -157,7 +157,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
-  '/jano/articles': typeof JanoArticlesRoute
+  '/jano/files': typeof JanoFilesRoute
   '/jano/import': typeof JanoImportRoute
   '/jano/ocr': typeof JanoOcrRoute
   '/jano/reader': typeof JanoReaderRoute
@@ -181,7 +181,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
-  '/jano/articles': typeof JanoArticlesRoute
+  '/jano/files': typeof JanoFilesRoute
   '/jano/import': typeof JanoImportRoute
   '/jano/ocr': typeof JanoOcrRoute
   '/jano/reader': typeof JanoReaderRoute
@@ -206,7 +206,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/submit': typeof BlogSubmitRoute
-  '/jano/articles': typeof JanoArticlesRoute
+  '/jano/files': typeof JanoFilesRoute
   '/jano/import': typeof JanoImportRoute
   '/jano/ocr': typeof JanoOcrRoute
   '/jano/reader': typeof JanoReaderRoute
@@ -232,7 +232,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/blog/submit'
-    | '/jano/articles'
+    | '/jano/files'
     | '/jano/import'
     | '/jano/ocr'
     | '/jano/reader'
@@ -256,7 +256,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/blog/submit'
-    | '/jano/articles'
+    | '/jano/files'
     | '/jano/import'
     | '/jano/ocr'
     | '/jano/reader'
@@ -280,7 +280,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/sitemap.xml'
     | '/blog/submit'
-    | '/jano/articles'
+    | '/jano/files'
     | '/jano/import'
     | '/jano/ocr'
     | '/jano/reader'
@@ -305,7 +305,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSubmitRoute: typeof BlogSubmitRoute
-  JanoArticlesRoute: typeof JanoArticlesRoute
+  JanoFilesRoute: typeof JanoFilesRoute
   JanoImportRoute: typeof JanoImportRoute
   JanoOcrRoute: typeof JanoOcrRoute
   JanoReaderRoute: typeof JanoReaderRoute
@@ -423,11 +423,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JanoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/jano/articles': {
-      id: '/jano/articles'
-      path: '/jano/articles'
-      fullPath: '/jano/articles'
-      preLoaderRoute: typeof JanoArticlesRouteImport
+    '/jano/files': {
+      id: '/jano/files'
+      path: '/jano/files'
+      fullPath: '/jano/files'
+      preLoaderRoute: typeof JanoFilesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/jano/import': {
@@ -489,7 +489,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSubmitRoute: BlogSubmitRoute,
-  JanoArticlesRoute: JanoArticlesRoute,
+  JanoFilesRoute: JanoFilesRoute,
   JanoImportRoute: JanoImportRoute,
   JanoOcrRoute: JanoOcrRoute,
   JanoReaderRoute: JanoReaderRoute,

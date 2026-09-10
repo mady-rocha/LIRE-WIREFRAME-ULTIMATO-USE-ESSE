@@ -24,7 +24,7 @@ export const Route = createFileRoute("/blog/submit")({
 
 function Submit() {
   const navigate = useNavigate();
-  const [anon, setAnon] = useState(false);
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedTitle, setSubmittedTitle] = useState("");
@@ -73,7 +73,7 @@ function Submit() {
               corpo: String(data.get("body")),
               referencias: String(data.get("references") ?? ""),
               categoria: String(data.get("category")),
-              anonimo,
+              anonimo: isAnonymous,
             });
             setSubmittedTitle(String(data.get("title")));
             setSubmitted(true);
@@ -103,47 +103,47 @@ function Submit() {
             <Input id="title" name="title" placeholder="Um título claro e descritivo" required />
           </div>
 
-        <div className="mt-6 space-y-1.5">
-          <Label htmlFor="cat">Categoria</Label>
-          <Select name="category" required>
-            <SelectTrigger id="cat">
-              <SelectValue placeholder="Selecione uma categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="dislexia">Dislexia</SelectItem>
-              <SelectItem value="tdah">TDAH</SelectItem>
-              <SelectItem value="autismo">Autismo</SelectItem>
-              <SelectItem value="surdez">Surdez</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="mt-6 space-y-1.5">
-          <Label htmlFor="body">Corpo do texto</Label>
-          <Textarea id="body" name="body" placeholder="Escreva seu artigo…" className="min-h-48" required />
-        </div>
-
-        <div className="mt-6 space-y-1.5">
-          <Label htmlFor="ref">Links e fontes</Label>
-          <Textarea id="ref" name="references" placeholder="Adicione os links e fontes utilizadas" className="min-h-20" required />
-        </div>
-
-        <div className="mt-6 flex items-center justify-between rounded-lg border p-4">
-          <div>
-            <p className="font-medium">{anon ? "Publicar anonimamente" : "Publicar com meu nome"}</p>
-            <p className="text-sm text-muted-foreground">Você controla como seu nome aparece.</p>
+          <div className="mt-6 space-y-1.5">
+            <Label htmlFor="cat">Categoria</Label>
+            <Select name="category" required>
+              <SelectTrigger id="cat">
+                <SelectValue placeholder="Selecione uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dislexia">Dislexia</SelectItem>
+                <SelectItem value="tdah">TDAH</SelectItem>
+                <SelectItem value="autismo">Autismo</SelectItem>
+                <SelectItem value="surdez">Surdez</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Switch checked={anon} onCheckedChange={setAnon} aria-label="Publicar anonimamente" />
+
+          <div className="mt-6 space-y-1.5">
+            <Label htmlFor="body">Corpo do texto</Label>
+            <Textarea id="body" name="body" placeholder="Escreva seu artigo…" className="min-h-48" required />
+          </div>
+
+          <div className="mt-6 space-y-1.5">
+            <Label htmlFor="ref">Links e fontes</Label>
+            <Textarea id="ref" name="references" placeholder="Adicione os links e fontes utilizadas" className="min-h-20" required />
+          </div>
+
+          <div className="mt-6 flex items-center justify-between rounded-lg border p-4">
+            <div>
+              <p className="font-medium">{isAnonymous ? "Publicar anonimamente" : "Publicar com meu nome"}</p>
+              <p className="text-sm text-muted-foreground">Você controla como seu nome aparece.</p>
+            </div>
+            <Switch checked={isAnonymous} onCheckedChange={setIsAnonymous} aria-label="Publicar anonimamente" />
+          </div>
+
+          <div className="mt-6 flex items-start gap-3">
+            <Checkbox id="consent" checked={consent} onCheckedChange={(v) => setConsent(!!v)} />
+            <Label htmlFor="consent" className="text-sm font-normal leading-snug">
+              Concordo com a publicação deste conteúdo e confirmo que tenho direito de compartilhá-lo.
+            </Label>
+          </div>
         </div>
 
-        <div className="mt-6 flex items-start gap-3">
-          <Checkbox id="consent" checked={consent} onCheckedChange={(v) => setConsent(!!v)} />
-          <Label htmlFor="consent" className="text-sm font-normal leading-snug">
-            Concordo com a publicação deste conteúdo e confirmo que tenho direito de compartilhá-lo.
-          </Label>
-        </div>
-
-        </div>
         {error && <p className="text-sm text-destructive" role="alert">{error}</p>}
         <Button type="submit" size="lg" className="w-full" disabled={!consent || isLoading}>
           <Send className="h-4 w-4" /> {isLoading ? "Enviando..." : "Enviar para revisão"}

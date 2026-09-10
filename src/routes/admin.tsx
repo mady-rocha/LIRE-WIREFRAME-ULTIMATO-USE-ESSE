@@ -415,10 +415,10 @@ function ArticleReview({
   articles,
   onUpdated,
 }: {
-  articles: PendingArticle[];
+  articles: ArticleSubmission[];
   onUpdated: () => void;
 }) {
-  const update = async (article: ArticleSubmission, status: "aprovado" | "rejeitado") => {
+  const update = async (article: ArticleSubmission, status: "aprovado" | "recusado") => {
     try {
       if (status === "aprovado") {
         await approveArticleSubmission(article);
@@ -431,6 +431,7 @@ function ArticleReview({
       onUpdated();
     }
   };
+
   return (
     <section className="rounded-2xl border bg-card p-6">
       <h2 className="flex items-center gap-2 font-display text-xl font-bold">
@@ -443,15 +444,15 @@ function ArticleReview({
             className="flex items-center justify-between gap-3 rounded-lg border p-4"
           >
             <div>
-              <p className="font-semibold">{article.title}</p>
+              <p className="font-semibold">{article.titulo}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                Enviado em {new Date(article.submittedAt).toLocaleDateString("pt-BR")}
+                Enviado em {new Date(article.data_envio).toLocaleDateString("pt-BR")}
               </p>
             </div>
             <div className="flex gap-1">
               <Button
                 size="icon"
-                aria-label={`Aprovar artigo ${article.title}`}
+                aria-label={`Aprovar artigo ${article.titulo}`}
                 onClick={() => void update(article, "aprovado")}
               >
                 <Check className="admin-action-icon h-4 w-4" />
@@ -459,8 +460,8 @@ function ArticleReview({
               <Button
                 size="icon"
                 variant="outline"
-                aria-label={`Rejeitar artigo ${article.title}`}
-                onClick={() => void update(article, "rejeitado")}
+                aria-label={`Rejeitar artigo ${article.titulo}`}
+                onClick={() => void update(article, "recusado")}
               >
                 <X className="admin-outline-action-icon h-4 w-4" />
               </Button>
