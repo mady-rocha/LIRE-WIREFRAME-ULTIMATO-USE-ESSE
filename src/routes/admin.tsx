@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 import {
   approveArticleSubmission,
   listArticleSubmissions,
-  publishAdminArticle,
+  listPublishedArticleRows,
   rejectArticleSubmission,
   type ArticleSubmission,
 } from "@/lib/blog-submissions";
@@ -106,13 +106,18 @@ function AdminPage() {
   const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
   const [pendingArticles, setPendingArticles] = useState<ArticleSubmission[]>([]);
+  const [publishedCount, setPublishedCount] = useState(0);
   const [notice, setNotice] = useState("");
 
   const refresh = async () => {
     try {
-      setPendingArticles(await listArticleSubmissions());
+      const pending = await listArticleSubmissions();
+      const published = await listPublishedArticleRows();
+      setPendingArticles(pending);
+      setPublishedCount(published.length);
     } catch {
       setPendingArticles([]);
+      setPublishedCount(0);
     }
   };
 
@@ -172,6 +177,18 @@ function AdminPage() {
             {notice}
           </p>
         )}
+
+        <section className="grid gap-4 sm:grid-cols-2">
+          <div className="rounded-2xl border bg-card p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Blogs pendentes</p>
+            <p className="mt-2 font-display text-3xl font-bold text-accent">{pendingArticles.length}</p>
+          </div>
+          <div className="rounded-2xl border bg-card p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Blogs publicados</p>
+            <p className="mt-2 font-display text-3xl font-bold text-accent">{publishedCount}</p>
+          </div>
+        </section>
+
         <ArticleReview
           articles={pendingArticles}
           onUpdated={() => {
@@ -179,7 +196,6 @@ function AdminPage() {
             void refresh();
           }}
         />
-        <BlogForm onSaved={setNotice} />
         <Button onClick={() => navigate({ to: "/blog" })}>
           <ArrowLeft className="admin-back-icon h-4 w-4" /> Voltar ao Blog
         </Button>
@@ -236,64 +252,4 @@ function ArticleReview({
   );
 }
 
-function BlogForm({ onSaved }: { onSaved: (message: string) => void }) {
-  const submit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    try {
-      await publishAdminArticle({
-        titulo: String(data.get("title")),
-        corpo: String(data.get("content")),
-        referencias: "Conteúdo publicado pela equipe Lire",
-        categoria: String(data.get("category")),
-      });
-      event.currentTarget.reset();
-      onSaved("Blog publicado com sucesso.");
-    } catch (error) {
-      onSaved(error instanceof Error ? error.message : "Não foi possível publicar o blog.");
-    }
-  };
-  return (
-    <section className="rounded-2xl border bg-card p-6">
-      <h2 className="flex items-center gap-2 font-display text-xl font-bold">
-        <FilePlus2 className="h-5 w-5 text-accent" /> Postar novo blog
-      </h2>
-      <form onSubmit={submit} className="mt-4 space-y-3">
-        <Field id="blog-title" name="title" label="Título" placeholder="Título do artigo" />
-        <Field id="blog-category" name="category" label="Categoria" placeholder="Ex.: Dislexia" />
-        <div className="space-y-1.5">
-          <Label htmlFor="blog-content">Conteúdo</Label>
-          <Textarea
-            id="blog-content"
-            name="content"
-            className="min-h-32"
-            placeholder="Escreva o conteúdo do artigo."
-            required
-          />
-        </div>
-        <Button type="submit">
-          <Newspaper className="admin-submit-icon h-4 w-4" /> Publicar blog
-        </Button>
-      </form>
-    </section>
-  );
-}
 
-function Field({
-  id,
-  name,
-  label,
-  placeholder,
-}: {
-  id: string;
-  name: string;
-  label: string;
-  placeholder: string;
-}) {
-  return (
-    <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
-      <Input id={id} name={name} placeholder={placeholder} required />
-    </div>
-  );
-}
