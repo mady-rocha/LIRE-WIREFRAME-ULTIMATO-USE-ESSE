@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
+import { supabase, supabaseConfigurado } from "@/lib/supabase";
 
 type Mode = "login" | "signup";
 
@@ -36,9 +37,45 @@ function Auth() {
   const navigate = useNavigate();
   const isSignup = mode === "signup";
 
-  const submit = (e: React.FormEvent) => {
+  const [firstName, setFirstName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [erro, setErro] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ to: isSignup ? "/select-profile" : "/jano" });
+    setErro("");
+
+    if (!supabaseConfigurado) {
+      setErro("Supabase não configurado — confere o .env");
+      return;
+    }
+
+    setEnviando(true);
+
+    if (isSignup) {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { first_name: firstName } },
+      });
+      setEnviando(false);
+      if (error) {
+        setErro(error.message);
+        return;
+      }
+      navigate({ to: "/select-profile" });
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setEnviando(false);
+    if (error) {
+      setErro(error.message);
+      return;
+    }
+    navigate({ to: "/jano" });
   };
 
   return (
@@ -58,16 +95,41 @@ function Auth() {
           {isSignup && (
             <div className="space-y-1.5">
               <Label htmlFor="first-name">Primeiro nome</Label>
-              <Input id="first-name" name="firstName" type="text" autoComplete="given-name" placeholder="Seu primeiro nome" required />
+              <Input
+                id="first-name"
+                name="firstName"
+                type="text"
+                autoComplete="given-name"
+                placeholder="Seu primeiro nome"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
             </div>
           )}
           <div className="space-y-1.5">
             <Label htmlFor="email">E-mail</Label>
-            <Input id="email" type="email" autoComplete="email" placeholder="voce@email.com" required />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              placeholder="voce@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Senha</Label>
-            <Input id="password" type="password" autoComplete="current-password" placeholder="••••••••" required />
+            <Input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
             {!isSignup && (
               <div className="text-right">
                 <Link to="/forgot-password" className="text-sm font-semibold text-accent hover:underline">
@@ -77,8 +139,14 @@ function Auth() {
             )}
           </div>
 
-          <Button type="submit" className="h-11 w-full text-base">
-            {isSignup ? "Criar conta" : "Entrar"}
+          {erro && (
+            <p className="text-sm text-destructive" role="alert">
+              {erro}
+            </p>
+          )}
+
+          <Button type="submit" className="h-11 w-full text-base" disabled={enviando}>
+            {enviando ? "Aguarda..." : isSignup ? "Criar conta" : "Entrar"}
           </Button>
         </form>
 
@@ -86,7 +154,7 @@ function Auth() {
           <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
         </div>
 
-        <Button variant="outline" className="h-11 w-full text-base">
+        <Button variant="outline" className="h-11 w-full text-base" disabled>
           <GoogleIcon />
           Continuar com Google
         </Button>
