@@ -1,0 +1,211 @@
+{
+  "format": "libras-tfjs-sequential-v1",
+  "generatedBy": "TensorFlow 2.15.1",
+  "weightsPath": "weights.bin",
+  "inputShape": [
+    30,
+    258
+  ],
+  "classes": [
+    "Oi",
+    "Tudo_bem",
+    "Tchau",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "Y",
+    "NADA"
+  ],
+  "layers": [
+    {
+      "name": "lstm_1",
+      "type": "lstm",
+      "units": 64,
+      "returnSequences": true,
+      "kernel": "lstm_1/kernel",
+      "recurrentKernel": "lstm_1/recurrent_kernel",
+      "bias": "lstm_1/bias"
+    },
+    {
+      "name": "lstm_2",
+      "type": "lstm",
+      "units": 128,
+      "returnSequences": true,
+      "kernel": "lstm_2/kernel",
+      "recurrentKernel": "lstm_2/recurrent_kernel",
+      "bias": "lstm_2/bias"
+    },
+    {
+      "name": "lstm_3",
+      "type": "lstm",
+      "units": 64,
+      "returnSequences": false,
+      "kernel": "lstm_3/kernel",
+      "recurrentKernel": "lstm_3/recurrent_kernel",
+      "bias": "lstm_3/bias"
+    },
+    {
+      "name": "dense_1",
+      "type": "dense",
+      "units": 64,
+      "activation": "relu",
+      "kernel": "dense_1/kernel",
+      "bias": "dense_1/bias"
+    },
+    {
+      "name": "saida",
+      "type": "dense",
+      "units": 28,
+      "activation": "softmax",
+      "kernel": "saida/kernel",
+      "bias": "saida/bias"
+    }
+  ],
+  "weights": [
+    {
+      "name": "lstm_1/kernel",
+      "shape": [
+        258,
+        256
+      ],
+      "dtype": "float32",
+      "offset": 0,
+      "length": 66048
+    },
+    {
+      "name": "lstm_1/recurrent_kernel",
+      "shape": [
+        64,
+        256
+      ],
+      "dtype": "float32",
+      "offset": 66048,
+      "length": 16384
+    },
+    {
+      "name": "lstm_1/bias",
+      "shape": [
+        256
+      ],
+      "dtype": "float32",
+      "offset": 82432,
+      "length": 256
+    },
+    {
+      "name": "lstm_2/kernel",
+      "shape": [
+        64,
+        512
+      ],
+      "dtype": "float32",
+      "offset": 82688,
+      "length": 32768
+    },
+    {
+      "name": "lstm_2/recurrent_kernel",
+      "shape": [
+        128,
+        512
+      ],
+      "dtype": "float32",
+      "offset": 115456,
+      "length": 65536
+    },
+    {
+      "name": "lstm_2/bias",
+      "shape": [
+        512
+      ],
+      "dtype": "float32",
+      "offset": 180992,
+      "length": 512
+    },
+    {
+      "name": "lstm_3/kernel",
+      "shape": [
+        128,
+        256
+      ],
+      "dtype": "float32",
+      "offset": 181504,
+      "length": 32768
+    },
+    {
+      "name": "lstm_3/recurrent_kernel",
+      "shape": [
+        64,
+        256
+      ],
+      "dtype": "float32",
+      "offset": 214272,
+      "length": 16384
+    },
+    {
+      "name": "lstm_3/bias",
+      "shape": [
+        256
+      ],
+      "dtype": "float32",
+      "offset": 230656,
+      "length": 256
+    },
+    {
+      "name": "dense_1/kernel",
+      "shape": [
+        64,
+        64
+      ],
+      "dtype": "float32",
+      "offset": 230912,
+      "length": 4096
+    },
+    {
+      "name": "dense_1/bias",
+      "shape": [
+        64
+      ],
+      "dtype": "float32",
+      "offset": 235008,
+      "length": 64
+    },
+    {
+      "name": "saida/kernel",
+      "shape": [
+        64,
+        28
+      ],
+      "dtype": "float32",
+      "offset": 235072,
+      "length": 1792
+    },
+    {
+      "name": "saida/bias",
+      "shape": [
+        28
+      ],
+      "dtype": "float32",
+      "offset": 236864,
+      "length": 28
+    }
+  ]
+}
