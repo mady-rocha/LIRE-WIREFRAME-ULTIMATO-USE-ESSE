@@ -14,6 +14,8 @@ function createNoopSupabaseClient() {
       signUp: async () => ({ data: { user: null, session: null }, error: null }),
       signInWithPassword: async () => ({ data: { user: null, session: null }, error: null }),
       signOut: async () => ({ error: null }),
+      getUser: async () => ({ data: { user: null }, error: null }),
+      updateUser: async () => ({ data: { user: null }, error: null }),
     },
     from: () => ({
       upsert: async () => ({ data: null, error: null }),
@@ -27,6 +29,9 @@ function createNoopSupabaseClient() {
         eq: async () => ({ error: null }),
       }),
     }),
+    functions: {
+      invoke: async () => ({ data: null, error: new Error("Supabase não configurado.") }),
+    },
     removeChannel: () => undefined,
   };
 }

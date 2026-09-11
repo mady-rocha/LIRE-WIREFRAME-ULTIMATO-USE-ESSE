@@ -1,0 +1,68 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+
+const json = (body: Record<string, unknown>, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (request.method !== "POST") return json({ error: "Método não permitido." }, 405);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const authorization = request.headers.get("Authorization");
+
+  if (!supabaseUrl || !anonKey || !serviceRoleKey || !authorization?.startsWith("Bearer ")) {
+    return json({ error: "Configuração de autenticação incompleta." }, 500);
+  }
+
+  const accessToken = authorization.replace("Bearer ", "");
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+  });
+  const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+  const { data: userData, error: userError } = await userClient.auth.getUser();
+  if (userError || !userData.user) return json({ error: "Sessão inválida." }, 401);
+
+  let body: { email?: unknown };
+  try {
+    body = await request.json();
+  } catch {
+    return json({ error: "Corpo da requisição inválido." }, 400);
+  }
+
+  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+  if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+    return json({ error: "Digite um e-mail válido." }, 422);
+  }
+
+  if (email === userData.user.email?.toLowerCase()) {
+    return json({ error: "O novo e-mail precisa ser diferente do atual." }, 422);
+  }
+
+  const { error: updateError } = await adminClient.auth.admin.updateUserById(userData.user.id, {
+    email,
+    email_confirm: true,
+  });
+
+  if (updateError) return json({ error: updateError.message }, 422);
+
+  const { error: profileError } = await adminClient
+    .from("usuario")
+    .update({ provedor_login: email })
+    .eq("id", userData.user.id);
+
+  if (profileError) return json({ error: profileError.message }, 500);
+
+  return json({ email });
+});

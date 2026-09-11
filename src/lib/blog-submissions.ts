@@ -54,6 +54,28 @@ export async function createArticleSubmission(input: {
   if (error) throw error;
 }
 
+export async function publishAdminArticle(input: {
+  titulo: string;
+  corpo: string;
+  referencias: string;
+  categoria: string;
+}) {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const adminId = sessionData.session?.user.id ?? null;
+  if (!adminId) throw new Error("Sessão de administrador não encontrada.");
+
+  const { error } = await supabase.from("artigo_blog").insert({
+    id_admin: adminId,
+    titulo: input.titulo,
+    corpo: input.corpo,
+    referencias: input.referencias || null,
+    categoria: input.categoria,
+    status: "publicado",
+  });
+
+  if (error) throw error;
+}
+
 export async function listArticleSubmissions() {
   const { data, error } = await supabase
     .from("submissao_artigo")

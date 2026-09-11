@@ -52,11 +52,18 @@ function Reader() {
   const [bold, setBold] = useState(false);
   const [ttsSpeed, setTtsSpeed] = useState([defaultReadingPreferences.velocidade_tts]);
   const [contrast, setContrast] = useState<"claro" | "escuro" | "alto">(
-    defaultReadingPreferences.modo_tema === "alto" ? "alto" : "escuro", 
+    defaultReadingPreferences.modo_tema,
   );
   const [documentName, setDocumentName] = useState("Neurociência da leitura.pdf");
   const [paragraphs, setParagraphs] = useState(defaultParagraphs);
   const [documentId, setDocumentId] = useState<string | null>(null);
+  const [preferencesLoaded, setPreferencesLoaded] = useState(false);
+  const [documentLoaded, setDocumentLoaded] = useState(false);
+  const speechGenerationRef = useRef(0);
+  const speechQueueRef = useRef<Array<{ text: string; start: number }>>([]);
+  const speechIndexRef = useRef(0);
+  const speechVoiceRef = useRef<SpeechSynthesisVoice | null>(null);
+  const speechSessionRef = useRef(false);
 
   const persistPreferences = async (next: ReadingPreferences) => {
     await saveReadingPreferencesToSupabase(next);
@@ -66,7 +73,7 @@ function Reader() {
     fonte: dyslexic ? "OpenDyslexic" : "DM Sans",
     tamanho_fonte: fontSize[0],
     espacamento_linha: lineHeight[0],
-    modo_tema: contrast === "alto" ? "alto" : "escuro",
+    modo_tema: contrast,
     modo_foco: focusMode,
     velocidade_tts: ttsSpeed[0],
   });
@@ -81,14 +88,37 @@ function Reader() {
       setLineHeight([finalPreferences.espacamento_linha]);
       setTtsSpeed([finalPreferences.velocidade_tts]);
       setFocusMode(finalPreferences.modo_foco);
-      setContrast(finalPreferences.modo_tema === "alto" ? "alto" : "escuro");
+      setContrast(finalPreferences.modo_tema);
       setDyslexic(finalPreferences.fonte === "OpenDyslexic");
     };
-    void load();
+    void load()
+      .catch(() => undefined)
+      .finally(() => setPreferencesLoaded(true));
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+
+    const selectPortugueseVoice = () => {
+      const voices = window.speechSynthesis.getVoices();
+      speechVoiceRef.current =
+        voices.find((voice) => voice.lang.toLowerCase() === "pt-br") ??
+        voices.find((voice) => voice.lang.toLowerCase().startsWith("pt-br")) ??
+        voices.find((voice) => voice.lang.toLowerCase().startsWith("pt")) ??
+        null;
+    };
+
+    selectPortugueseVoice();
+    window.speechSynthesis.addEventListener("voiceschanged", selectPortugueseVoice);
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", selectPortugueseVoice);
+  }, []);
+
   useEffect(() => {
     const stored = sessionStorage.getItem("lire.pending-document");
-    if (!stored) return;
+    if (!stored) {
+      setDocumentLoaded(true);
+      return;
+    }
 
     try {
       const pending = JSON.parse(stored) as { id?: string; name?: string; content?: string };
@@ -98,13 +128,17 @@ function Reader() {
           if (!document) return;
           setDocumentName(document.name);
           setParagraphs(document.content.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()));
-        });
+        }).catch(() => undefined).finally(() => setDocumentLoaded(true));
       } else if (pending.name && pending.content) {
         setDocumentName(pending.name);
         setParagraphs(pending.content.split(/\n\s*\n/).filter((paragraph) => paragraph.trim()));
+        setDocumentLoaded(true);
+      } else {
+        setDocumentLoaded(true);
       }
     } catch {
       sessionStorage.removeItem("lire.pending-document");
+      setDocumentLoaded(true);
     }
 
   }, []);
@@ -149,27 +183,61 @@ function Reader() {
 
   const speechRef = useRef<SpeechSynthesisUtterance | null>(null);
 
-  const speakText = (rate: number) => {
-    const utterance = new SpeechSynthesisUtterance(paragraphs.join("\n\n"));
+  const speakNextChunk = (rate: number, generation: number) => {
+    const chunk = speechQueueRef.current[speechIndexRef.current];
+    if (!chunk || speechGenerationRef.current !== generation) {
+      speechSessionRef.current = false;
+      setPlaying(false);
+      setActiveTtsRange(null);
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(chunk.text);
     utterance.lang = "pt-BR";
+    if (speechVoiceRef.current) utterance.voice = speechVoiceRef.current;
     utterance.rate = rate / 100;
-    utterance.onstart = () => setPlaying(true);
+    utterance.onstart = () => {
+      if (speechGenerationRef.current !== generation) return;
+      setPlaying(true);
+    };
     utterance.onboundary = (event) => {
-      const start = event.charIndex;
+      if (speechGenerationRef.current !== generation) return;
+      const start = chunk.start + event.charIndex;
       const end = start + (event.charLength || 1);
       setActiveTtsRange({ start, end });
     };
     utterance.onend = () => {
-      setPlaying(false);
-      setActiveTtsRange(null);
+      if (speechGenerationRef.current !== generation) return;
+      speechIndexRef.current += 1;
+      speakNextChunk(rate, generation);
     };
     utterance.onerror = () => {
+      if (speechGenerationRef.current !== generation) return;
+      speechSessionRef.current = false;
       setPlaying(false);
       setActiveTtsRange(null);
     };
     speechRef.current = utterance;
-    window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
+  };
+
+  const speakText = (rate: number) => {
+    const text = paragraphs.join("\n\n");
+    const chunks: Array<{ text: string; start: number }> = [];
+    const chunkPattern = /[^,.;:!?…]+(?:[,.;:!?…]+|$)/g;
+    for (const match of text.matchAll(chunkPattern)) {
+      if (match.index === undefined || !match[0].trim()) continue;
+      chunks.push({ text: match[0], start: match.index });
+    }
+
+    const generation = speechGenerationRef.current + 1;
+    speechGenerationRef.current = generation;
+    speechQueueRef.current = chunks;
+    speechIndexRef.current = 0;
+    speechSessionRef.current = true;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.resume();
+    speakNextChunk(rate, generation);
   };
 
   const toggleTts = () => {
@@ -182,14 +250,13 @@ function Reader() {
       return;
     }
 
-    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+    if (speechSessionRef.current && window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
       window.speechSynthesis.pause();
       setPlaying(false);
-      setActiveTtsRange(null);
       return;
     }
 
-    if (window.speechSynthesis.paused) {
+    if (speechSessionRef.current && window.speechSynthesis.paused && window.speechSynthesis.speaking) {
       window.speechSynthesis.resume();
       setPlaying(true);
       return;
@@ -205,7 +272,7 @@ function Reader() {
       fonte: dyslexic ? "OpenDyslexic" : "DM Sans",
       tamanho_fonte: fontSize[0],
       espacamento_linha: lineHeight[0],
-      modo_tema: contrast === "alto" ? "alto" : "escuro",
+      modo_tema: contrast,
       modo_foco: focusMode,
       velocidade_tts: nextSpeed,
     };
@@ -218,8 +285,13 @@ function Reader() {
   };
 
   useEffect(() => () => {
+    speechGenerationRef.current += 1;
+    speechSessionRef.current = false;
+    speechQueueRef.current = [];
+    speechIndexRef.current = 0;
     if (typeof window !== "undefined" && "speechSynthesis" in window) {
       window.speechSynthesis.cancel();
+      speechRef.current = null;
       setActiveTtsRange(null);
     }
   }, []);
@@ -230,6 +302,20 @@ function Reader() {
       : contrast === "alto"
         ? "bg-black text-yellow-300"
         : "bg-card text-card-foreground";
+
+  if (!preferencesLoaded || !documentLoaded) {
+    return (
+      <AppShell title="Carregando leitor...">
+        <div className="flex min-h-[60vh] items-center justify-center px-6">
+          <div className="rounded-xl border bg-card px-8 py-6 text-center shadow-sm">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary" />
+            <p className="mt-4 font-medium">Carregando documento e preferências...</p>
+            <p className="mt-1 text-sm text-muted-foreground">Aguarde um instante.</p>
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell
@@ -398,10 +484,9 @@ function Reader() {
                     key={c}
                     onClick={() => {
                       const nextContrast = c;
-                      const persistedTheme = nextContrast === "alto" ? "alto" : "escuro";
                       setContrast(nextContrast);
                       const nextPreferences = buildReadingPreferencesFromUi();
-                      nextPreferences.modo_tema = persistedTheme;
+                      nextPreferences.modo_tema = nextContrast;
                       void persistPreferences(nextPreferences);
                     }}
                     className={`rounded-lg border px-2 py-2 text-xs capitalize ${contrast === c ? "border-primary bg-primary/10" : ""}`}

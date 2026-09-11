@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 
-export type ReadingThemeMode = "escuro" | "alto";
+export type ReadingThemeMode = "claro" | "escuro" | "alto";
 
 export interface ReadingPreferences {
   fonte: string;
@@ -17,13 +17,14 @@ export const defaultReadingPreferences: ReadingPreferences = {
   fonte: "DM Sans",
   tamanho_fonte: 20,
   espacamento_linha: 180,
-  modo_tema: "escuro",
+  modo_tema: "claro",
   modo_foco: false,
   velocidade_tts: 100,
 };
 
 function normalizeTheme(mode: unknown): ReadingThemeMode {
-  return mode === "alto" ? "alto" : "escuro";
+  if (mode === "alto" || mode === "escuro" || mode === "claro") return mode;
+  return defaultReadingPreferences.modo_tema;
 }
 
 function normalizeNumber(value: unknown, fallback: number) {
@@ -134,7 +135,6 @@ export async function saveReadingPreferencesToSupabase(preferences: ReadingPrefe
   }
 
   const directUserPayload = {
-    id: userId,
     fonte: preferences.fonte,
     tamanho_fonte: preferences.tamanho_fonte,
     espacamento_linha: preferences.espacamento_linha,
@@ -159,16 +159,16 @@ export async function saveReadingPreferencesToSupabase(preferences: ReadingPrefe
     },
     {
       table: "usuario",
-      conflict: "id",
       payload: directUserPayload,
     },
   ];
 
   for (const target of preferenceTablePayloads) {
     try {
-      const { error } = await supabase
-        .from(target.table)
-        .upsert(target.payload, { onConflict: target.conflict });
+      const query = supabase.from(target.table);
+      const { error } = target.table === "usuario"
+        ? await query.update(target.payload).eq("id", userId)
+        : await query.upsert(target.payload, { onConflict: "id_usuario" });
 
       if (!error) {
         writeLocalReadingPreferences(preferences);
