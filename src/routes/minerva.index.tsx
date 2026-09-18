@@ -1,24 +1,76 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Camera, Keyboard, Newspaper, ChevronRight, Hand } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { PremiumBadge } from "@/components/PremiumBadge";
 import { useApp } from "@/lib/app-context";
+import { supabase, supabaseConfigurado } from "@/lib/supabase";
 
 export const Route = createFileRoute("/minerva/")({
   head: () => ({ meta: [{ title: "Início — Módulo Minerva | Lire" }] }),
   component: MinervaHome,
 });
 
-const history = [
-  { text: "Bom dia, como você está?", kind: "Frase digitada" },
-  { text: "Onde fica a estação mais próxima?", kind: "Conversa com avatar" },
-  { text: "Obrigada pela ajuda!", kind: "Texto traduzido" },
-];
+type SessaoLibras = {
+  id: string;
+  inicio: string;
+  tipo: string | null;
+  glosa_original: string | null;
+  texto_naturalizado: string | null;
+};
+
+// rótulo exibido conforme o tipo de sessão
+function rotuloTipo(tipo: string | null) {
+  if (tipo === "traducao") return "Frase digitada";
+  if (tipo === "reconhecimento") return "Conversa com avatar";
+  return "Sessão";
+}
 
 function MinervaHome() {
   const { isPremium, showUpgrade, userName } = useApp();
   const navigate = useNavigate();
+
+  const [historico, setHistorico] = useState<SessaoLibras[]>([]);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    let cancelado = false;
+
+    async function carregarHistorico() {
+      if (!supabaseConfigurado) {
+        setCarregando(false);
+        return;
+      }
+
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        setCarregando(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("sessao_libras")
+        .select("id, inicio, tipo, glosa_original, texto_naturalizado")
+        .eq("id_usuario", userData.user.id)
+        .order("inicio", { ascending: false })
+        .limit(5);
+
+      if (cancelado) return;
+
+      if (error) {
+        console.error("erro ao carregar histórico:", error);
+      } else {
+        setHistorico(data ?? []);
+      }
+      setCarregando(false);
+    }
+
+    carregarHistorico();
+    return () => {
+      cancelado = true;
+    };
+  }, []);
 
   return (
     <AppShell title="Início">
@@ -44,22 +96,33 @@ function MinervaHome() {
         <section className="mt-10">
           <h3 className="font-display text-2xl font-bold">Continue onde parou</h3>
           <div className="mt-4 space-y-3">
-            {history.map((h) => (
-              <Link
-                key={h.text}
-                to="/avatar"
-                className="flex min-h-[76px] w-full items-center gap-4 rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/50"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
-                  <Hand className="h-5 w-5" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{h.text}</p>
-                  <p className="text-sm text-muted-foreground">{h.kind}</p>
-                </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
-              </Link>
-            ))}
+            {carregando && <p className="text-sm text-muted-foreground">carregando...</p>}
+
+            {!carregando && historico.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Nenhuma sessão ainda — inicie uma conversa por câmera ou digite algo pro avatar.
+              </p>
+            )}
+
+            {historico.map((h) => {
+              const texto = h.texto_naturalizado || h.glosa_original || "Sessão sem texto registrado";
+              return (
+                <Link
+                  key={h.id}
+                  to="/avatar"
+                  className="flex min-h-[76px] w-full items-center gap-4 rounded-xl border bg-card p-4 text-left transition-colors hover:border-primary/50"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                    <Hand className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{texto}</p>
+                    <p className="text-sm text-muted-foreground">{rotuloTipo(h.tipo)}</p>
+                  </div>
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                </Link>
+              );
+            })}
           </div>
         </section>
 

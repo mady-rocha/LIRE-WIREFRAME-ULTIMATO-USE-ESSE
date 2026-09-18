@@ -5,6 +5,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
+import { salvarSessaoAvatar } from "@/lib/avatar-session";
 
 export const Route = createFileRoute("/avatar")({
   head: () => ({ meta: [{ title: "Avatar — Texto para Libras | Lire" }] }),
@@ -14,6 +15,26 @@ export const Route = createFileRoute("/avatar")({
 function AvatarScreen() {
   const [text, setText] = useState("");
   const [playing, setPlaying] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [erroMsg, setErroMsg] = useState("");
+
+  async function interpretar() {
+    if (!text.trim()) return;
+    setPlaying(true);
+
+    setSalvando(true);
+    setErroMsg("");
+
+    const resultado = await salvarSessaoAvatar(text);
+
+    setSalvando(false);
+    if (!resultado.ok) {
+      if (resultado.reason !== "supabase_unconfigured") {
+        console.error("erro ao salvar sessao do avatar:", resultado.error ?? resultado.message);
+        setErroMsg(resultado.message);
+      }
+    }
+  }
 
   return (
     <AppShell title="Texto → Libras">
@@ -28,9 +49,16 @@ function AvatarScreen() {
           placeholder="Escreva aqui o texto que deseja interpretar em Libras…"
           className="mt-4 min-h-28 text-lg"
         />
-        <Button onClick={() => setPlaying(true)} size="lg" className="mt-3 w-full text-base">
-          <Hand className="h-5 w-5" /> Interpretar em Libras
+        <Button
+          onClick={interpretar}
+          size="lg"
+          className="mt-3 w-full text-base"
+          disabled={!text.trim() || salvando}
+        >
+          <Hand className="h-5 w-5" /> {salvando ? "Salvando..." : "Interpretar em Libras"}
         </Button>
+
+        {erroMsg && <p className="mt-2 text-sm text-red-500">{erroMsg}</p>}
 
         {/* Avatar stage */}
         <div className="mt-6 flex aspect-square w-full items-center justify-center rounded-2xl border bg-gradient-to-b from-secondary/15 to-brand-dark/15">

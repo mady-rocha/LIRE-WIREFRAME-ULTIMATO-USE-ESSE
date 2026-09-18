@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
-import { supabase } from "@/lib/supabase";
+import { supabase, supabaseConfigurado } from "@/lib/supabase";
 
 type Mode = "login" | "signup";
 
@@ -147,6 +147,15 @@ function Auth() {
                 placeholder="Seu nome"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
+              <Label htmlFor="first-name">Primeiro nome</Label>
+              <Input
+                id="first-name"
+                name="firstName"
+                type="text"
+                autoComplete="given-name"
+                placeholder="Seu primeiro nome"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 required
               />
             </div>
@@ -156,11 +165,14 @@ function Auth() {
             <Input
               id="email"
               name="email"
+            <Label htmlFor="email">E-mail</Label>
+            <Input
+              id="email"
               type="email"
               autoComplete="email"
               placeholder="voce@email.com"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -174,6 +186,10 @@ function Auth() {
               minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               required
             />
             {!isSignup && (
@@ -190,6 +206,14 @@ function Auth() {
 
           <Button type="submit" className="h-11 w-full text-base" disabled={isLoading}>
             {isLoading ? "Aguarde..." : isSignup ? "Criar conta" : "Entrar"}
+          {erro && (
+            <p className="text-sm text-destructive" role="alert">
+              {erro}
+            </p>
+          )}
+
+          <Button type="submit" className="h-11 w-full text-base" disabled={enviando}>
+            {enviando ? "Aguarda..." : isSignup ? "Criar conta" : "Entrar"}
           </Button>
         </form>
 
@@ -197,7 +221,7 @@ function Auth() {
           <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
         </div>
 
-        <Button variant="outline" className="h-11 w-full text-base">
+        <Button variant="outline" className="h-11 w-full text-base" disabled>
           <GoogleIcon />
           Continuar com Google
         </Button>
