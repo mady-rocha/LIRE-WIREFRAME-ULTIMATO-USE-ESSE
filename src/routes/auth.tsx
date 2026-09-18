@@ -8,6 +8,15 @@ import { supabase, supabaseConfigurado } from "@/lib/supabase";
 
 type Mode = "login" | "signup";
 
+function getSupabaseErrorMessage(error: unknown) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message) return message;
+  }
+  return "Não foi possível concluir o acesso.";
+}
+
 export const Route = createFileRoute("/auth")({
   validateSearch: (s: Record<string, unknown>): { mode: Mode } => ({
     mode: s.mode === "signup" ? "signup" : "login",
@@ -36,46 +45,81 @@ function Auth() {
   const { mode } = Route.useSearch();
   const navigate = useNavigate();
   const isSignup = mode === "signup";
-
-  const [firstName, setFirstName] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [erro, setErro] = useState("");
-  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const submit = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setErro("");
+    setError("");
+    setMessage("");
 
-    if (!supabaseConfigurado) {
-      setErro("Supabase não configurado — confere o .env");
-      return;
-    }
+    const normalizedEmail = email.trim().toLowerCase();
 
-    setEnviando(true);
+    setIsLoading(true);
+    try {
+      if (isSignup) {
+        const { data, error: signupError } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+          options: { data: { name: name.trim() } },
+        });
 
-    if (isSignup) {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { first_name: firstName } },
-      });
-      setEnviando(false);
-      if (error) {
-        setErro(error.message);
-        return;
+        if (signupError) throw signupError;
+        if (!data.user) throw new Error("Não foi possível criar o usuário.");
+        if (!data.session) {
+          setMessage("Usuário criado no Auth. Confirme o email e entre para concluir seu perfil.");
+          return;
+        }
+
+        const { error: profileError } = await supabase.from("usuario").upsert(
+          {
+            id: data.user.id,
+            nome: name.trim(),
+            provedor_login: normalizedEmail,
+          },
+          { onConflict: "id" },
+        );
+
+        if (profileError) throw profileError;
+      } else {
+        const { data, error: loginError } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        });
+        if (loginError) throw loginError;
+
+        const { error: profileError } = await supabase.from("usuario").upsert(
+          {
+            id: data.user.id,
+            nome: data.user.user_metadata.name ?? normalizedEmail.split("@")[0],
+            provedor_login: normalizedEmail,
+          },
+          { onConflict: "id" },
+        );
+
+        if (profileError) throw profileError;
       }
-      navigate({ to: "/select-profile" });
-      return;
-    }
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setEnviando(false);
-    if (error) {
-      setErro(error.message);
-      return;
+      navigate({ to: isSignup ? "/select-profile" : "/jano" });
+    } catch (authError) {
+      const errorMessage = getSupabaseErrorMessage(authError);
+      const normalizedError = errorMessage.toLowerCase();
+      let userMessage = errorMessage;
+
+      if (normalizedError.includes("rate limit")) {
+        userMessage = "O limite de emails de confirmação do Supabase foi atingido. Aguarde alguns minutos ou desative a confirmação de email no painel do Supabase durante o teste.";
+      } else if (normalizedError.includes("already registered") || normalizedError.includes("already been registered")) {
+        userMessage = "Este email já foi registrado no Auth. Entre com sua senha para criar ou atualizar o perfil em usuario.";
+      }
+
+      setError(userMessage);
+    } finally {
+      setIsLoading(false);
     }
-    navigate({ to: "/jano" });
   };
 
   return (
@@ -94,6 +138,15 @@ function Auth() {
         <form onSubmit={submit} className="space-y-4">
           {isSignup && (
             <div className="space-y-1.5">
+              <Label htmlFor="name">Nome</Label>
+              <Input
+                id="name"
+                name="name"
+                type="text"
+                autoComplete="name"
+                placeholder="Seu nome"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
               <Label htmlFor="first-name">Primeiro nome</Label>
               <Input
                 id="first-name"
@@ -108,6 +161,10 @@ function Auth() {
             </div>
           )}
           <div className="space-y-1.5">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              name="email"
             <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
@@ -124,6 +181,11 @@ function Auth() {
             <Input
               id="password"
               type="password"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              placeholder="••••••••"
+              minLength={6}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
               placeholder="••••••••"
               value={password}
@@ -139,6 +201,11 @@ function Auth() {
             )}
           </div>
 
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          {message && <p className="text-sm text-emerald-600">{message}</p>}
+
+          <Button type="submit" className="h-11 w-full text-base" disabled={isLoading}>
+            {isLoading ? "Aguarde..." : isSignup ? "Criar conta" : "Entrar"}
           {erro && (
             <p className="text-sm text-destructive" role="alert">
               {erro}

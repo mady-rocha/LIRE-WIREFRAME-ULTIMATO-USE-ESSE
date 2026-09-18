@@ -23,7 +23,7 @@ interface Props {
 }
 
 export function Sidebar({ open, onClose }: Props) {
-  const { module, requestModuleSwitch } = useApp();
+  const { module, userName, requestModuleSwitch } = useApp();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const minerva = module === "minerva";
 
@@ -35,7 +35,7 @@ export function Sidebar({ open, onClose }: Props) {
       ]
     : [
         { label: "Início", to: "/jano", icon: Home },
-        { label: "Meus Documentos", to: "/jano/reader", icon: FileText },
+        { label: "Meus Documentos", to: "/jano/files", icon: FileText },
         { label: "Blog", to: "/blog", icon: Newspaper },
         { label: "Configurações", to: "/settings", icon: Settings },
       ];
@@ -98,10 +98,15 @@ export function Sidebar({ open, onClose }: Props) {
 
       <div className="flex items-center gap-3 border-t border-sidebar-border px-5 py-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-primary text-sm font-bold text-sidebar-primary-foreground">
-          AM
+          {userName
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase()}
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-semibold">Ana Moraes</p>
+          <p className="text-sm font-semibold">{userName}</p>
           <p className="text-xs text-sidebar-foreground/60">
             Módulo {minerva ? "Minerva" : "Jano"}
           </p>

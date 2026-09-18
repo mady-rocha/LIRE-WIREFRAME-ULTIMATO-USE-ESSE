@@ -5,9 +5,10 @@ import { Search } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { listPendingArticles, type PendingArticle } from "@/lib/pending-articles";
 import { articles, catColor } from "@/lib/blog-articles";
+import { listArticleSubmissions, listPublishedArticleRows, publishedRowToBlogArticle, type ArticleSubmission } from "@/lib/blog-submissions";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/blog/")({
   head: () => ({ meta: [{ title: "Blog — Lire" }] }),
@@ -18,26 +19,74 @@ const categories = ["Todos", "Dislexia", "TDAH", "Autismo", "Surdez"] as const;
 function Blog() {
   const [active, setActive] = useState<string>("Todos");
   const [search, setSearch] = useState("");
-  const [pendingArticles, setPendingArticles] = useState<PendingArticle[]>([]);
+  const [pendingArticles, setPendingArticles] = useState<ArticleSubmission[]>([]);
+  const [publishedArticles, setPublishedArticles] = useState<typeof articles>([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const normalizedSearch = search.trim().toLocaleLowerCase("pt-BR");
-  const list = articles.filter((article) => {
+  const allArticles = publishedArticles;
+  const list = allArticles.filter((article) => {
     const matchesCategory = active === "Todos" || article.cat === active;
     const searchableText = `${article.title} ${article.cat} ${article.author} ${article.summary}`.toLocaleLowerCase("pt-BR");
     return matchesCategory && (!normalizedSearch || searchableText.includes(normalizedSearch));
   });
 
   useEffect(() => {
-    const loadPendingArticles = () => {
-      setPendingArticles(listPendingArticles());
+    const loadArticles = async () => {
+      setPendingArticles([]);
+      setPublishedArticles([]);
+
+      const [pending, published] = await Promise.all([
+        listArticleSubmissions(),
+        listPublishedArticleRows(),
+      ]);
+
+      const hydratedPublished = await Promise.all(
+        published.map(async (row) => {
+          if (row.anonimo || !row.id_usuario) {
+            return { ...row, autor_nome: row.anonimo ? "Anônimo" : null };
+          }
+
+          try {
+            const { data: profile } = await supabase
+              .from("usuario")
+              .select("nome")
+              .eq("id", row.id_usuario)
+              .maybeSingle();
+
+            return { ...row, autor_nome: profile?.nome ?? null };
+          } catch {
+            return { ...row, autor_nome: null };
+          }
+        }),
+      );
+
+      setPendingArticles(pending);
+      setPublishedArticles(hydratedPublished.map(publishedRowToBlogArticle));
     };
 
-    loadPendingArticles();
-    window.addEventListener("storage", loadPendingArticles);
-    window.addEventListener("lire:pending-articles-changed", loadPendingArticles);
+    void loadArticles().catch(() => {
+      setPendingArticles([]);
+      setPublishedArticles([]);
+    });
+
+    const channel = supabase
+      .channel("blog-live-updates")
+      .on("postgres_changes", { event: "*", schema: "public", table: "artigo_blog" }, () => {
+        void loadArticles().catch(() => {
+          setPendingArticles([]);
+          setPublishedArticles([]);
+        });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "submissao_artigo" }, () => {
+        void loadArticles().catch(() => {
+          setPendingArticles([]);
+          setPublishedArticles([]);
+        });
+      })
+      .subscribe();
+
     return () => {
-      window.removeEventListener("storage", loadPendingArticles);
-      window.removeEventListener("lire:pending-articles-changed", loadPendingArticles);
+      void supabase.removeChannel(channel);
     };
   }, []);
 

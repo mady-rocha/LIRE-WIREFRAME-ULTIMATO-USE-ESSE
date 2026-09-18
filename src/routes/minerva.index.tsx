@@ -28,7 +28,7 @@ function rotuloTipo(tipo: string | null) {
 }
 
 function MinervaHome() {
-  const { isPremium, showUpgrade } = useApp();
+  const { isPremium, showUpgrade, userName } = useApp();
   const navigate = useNavigate();
 
   const [historico, setHistorico] = useState<SessaoLibras[]>([]);
@@ -75,7 +75,7 @@ function MinervaHome() {
   return (
     <AppShell title="Início">
       <div className="mx-auto max-w-5xl px-6 py-8">
-        <h2 className="font-display text-3xl font-bold">Olá, Ana</h2>
+        <h2 className="font-display text-3xl font-bold">Olá, {userName}</h2>
 
         {/* Quick actions — larger touch targets */}
         <section className="mt-8 grid gap-4 sm:grid-cols-3">

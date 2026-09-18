@@ -10,6 +10,7 @@ import {
 import { useNavigate } from "@tanstack/react-router";
 import { ModuleSwitchModal } from "@/components/ModuleSwitchModal";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { supabase } from "@/lib/supabase";
 
 export type ModuleId = "jano" | "minerva";
 export type AppFont = "DM Sans" | "OpenDyslexic" | "OpenDyslexicAlta" | "OpenDyslexicMono";
@@ -18,6 +19,7 @@ export type SubscriptionPlan = "free" | "monthly" | "annual";
 interface AppContextValue {
   module: ModuleId;
   setModule: (m: ModuleId) => void;
+  userName: string;
   isPremium: boolean;
   setIsPremium: (v: boolean) => void;
   subscriptionPlan: SubscriptionPlan;
@@ -43,6 +45,7 @@ export function useApp() {
 export function AppProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [module, setModule] = useState<ModuleId>("jano");
+  const [userName, setUserName] = useState("Usuário");
   const [isPremium, setIsPremium] = useState(false);
   const [subscriptionPlan, setSubscriptionPlan] = useState<SubscriptionPlan>("free");
   const [planLoaded, setPlanLoaded] = useState(false);
@@ -51,6 +54,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const [pendingModule, setPendingModule] = useState<ModuleId | null>(null);
   const [upgradeFeature, setUpgradeFeature] = useState<string | null>(null);
+
+  const persistModule = useCallback(async (nextModule: ModuleId) => {
+    const { data } = await supabase.auth.getSession();
+    const user = data.session?.user;
+    if (!user) return;
+
+    const { error } = await supabase.from("usuario").upsert(
+      {
+        id: user.id,
+        nome: user.user_metadata.name || user.email?.split("@")[0] || "Usuário",
+        provedor_login: user.email,
+        perfil_principal: nextModule.toUpperCase(),
+      },
+      { onConflict: "id" },
+    );
+
+    if (error) console.error("Não foi possível salvar o módulo do usuário.", error);
+  }, []);
+
+  const changeModule = useCallback(
+    (nextModule: ModuleId) => {
+      setModule(nextModule);
+      void persistModule(nextModule);
+    },
+    [persistModule],
+  );
 
   const setDarkMode = useCallback((value: boolean) => {
     setDarkModeState(value);
@@ -62,11 +91,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const confirmSwitch = useCallback(() => {
     if (!pendingModule) return;
-    setModule(pendingModule);
+    changeModule(pendingModule);
     const target = pendingModule;
     setPendingModule(null);
     navigate({ to: target === "jano" ? "/jano" : "/minerva" });
-  }, [pendingModule, navigate]);
+  }, [pendingModule, navigate, changeModule]);
 
   const showUpgrade = useCallback((featureName: string) => {
     setUpgradeFeature(featureName);
@@ -74,6 +103,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   // Carrega as configurações salvas na inicialização
   useEffect(() => {
+    let mounted = true;
+
+    const loadProfile = async () => {
+      const { data } = await supabase.auth.getSession();
+      const user = data.session?.user;
+      if (!user || !mounted) return;
+
+      const { data: profile } = await supabase
+        .from("usuario")
+        .select("nome, perfil_principal")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (!mounted) return;
+      setUserName(profile?.nome || user.user_metadata.name || user.email?.split("@")[0] || "Usuário");
+      if (profile?.perfil_principal === "MINERVA" || profile?.perfil_principal === "JANO") {
+        setModule(profile.perfil_principal.toLowerCase() as ModuleId);
+      }
+    };
+
+    void loadProfile();
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+      void loadProfile();
+    });
+
     const isDark = localStorage.getItem("lire.black-mode") === "true";
     setDarkModeState(isDark);
     localStorage.removeItem("lire.night-light");
@@ -94,6 +148,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ) {
       setAppFont(storedFont);
     }
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -117,7 +175,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppContextValue>(
     () => ({
       module,
-      setModule,
+      setModule: changeModule,
+      userName,
       isPremium,
       setIsPremium,
       subscriptionPlan,
@@ -129,7 +188,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       appFont,
       setAppFont,
     }),
-    [module, isPremium, subscriptionPlan, requestModuleSwitch, showUpgrade, darkMode, setDarkMode, appFont],
+    [module, changeModule, userName, isPremium, subscriptionPlan, requestModuleSwitch, showUpgrade, darkMode, setDarkMode, appFont],
   );
 
   return (

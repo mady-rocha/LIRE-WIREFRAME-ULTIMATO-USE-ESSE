@@ -1,6 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, BookOpen, Bold, Focus, Gauge, Info, Lock, Pause, Play, Settings2, Type, X } from "lucide-react";
+
+function extractReferenceLinks(value?: string | null) {
+  const text = (value ?? "").trim();
+  if (!text) return [];
+
+  const matches = text.match(/https?:\/\/[^\s,]+|www\.[^\s,]+/gi) ?? [];
+  return matches
+    .map((candidate) => candidate.replace(/[).,;]+$/, ""))
+    .filter(Boolean);
+}
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,10 +18,24 @@ import { Slider } from "@/components/ui/slider";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useApp } from "@/lib/app-context";
 import { catColor, findArticle } from "@/lib/blog-articles";
+import { publishedRowToBlogArticle } from "@/lib/blog-submissions";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/blog/article/$slug")({
-  loader: ({ params }) => {
-    const article = findArticle(params.slug);
+  loader: async ({ params }) => {
+    let article = findArticle(params.slug);
+    if (!article && params.slug.startsWith("community-")) {
+      const id = params.slug.replace("community-", "");
+      const { data } = await supabase
+        .from("artigo_blog")
+        .select("id, id_admin, titulo, corpo, referencias, categoria, status, data_envio")
+        .eq("id", id)
+        .eq("status", "publicado")
+        .maybeSingle();
+      if (data) {
+        article = publishedRowToBlogArticle({ ...data, autor_nome: null });
+      }
+    }
     if (!article) throw notFound();
     return { article };
   },
@@ -38,6 +62,7 @@ function ArticlePage() {
   const [playing, setPlaying] = useState(false);
   const [ttsSpeed, setTtsSpeed] = useState([100]);
   const [activeTtsRange, setActiveTtsRange] = useState<{ start: number; end: number } | null>(null);
+  const referenceLinks = extractReferenceLinks(article.source);
   const sentences = article.paragraphs.map((paragraph) => paragraph.match(/[^.!?]+[.!?]+|[^.!?]+$/g) ?? [paragraph]);
   const ttsText = article.paragraphs.join("\n\n");
   const ttsSegments: Array<{ id: string; start: number; end: number }> = [];
@@ -148,6 +173,21 @@ function ArticlePage() {
               </p>;
             })}
           </div>
+
+          {referenceLinks.length > 0 && (
+            <div className="mt-8 rounded-2xl border bg-card p-5">
+              <h2 className="font-display text-lg font-bold">Referências</h2>
+              <ul className="mt-3 space-y-2 text-sm text-accent">
+                {referenceLinks.map((link) => (
+                  <li key={link}>
+                    <a href={link} target="_blank" rel="noreferrer" className="break-all underline-offset-4 hover:underline">
+                      {link}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </article>
 
         {panelOpen && <button aria-label="Fechar painel" onClick={() => setPanelOpen(false)} className="fixed inset-0 z-40 bg-brand-dark/25" />}
